@@ -5,8 +5,8 @@ import ChartBuilderPage from "./pages/ChartBuilderPage";
 function View() {
   const { page } = usePage();
 
-  if (page === "report") return <ReportPage />;
-  if (page === "chart-builder") return <ChartBuilderPage />;
+  if (page.name === "report") return <ReportPage />;
+  if (page.name === "chart-builder") return <ChartBuilderPage />;
 
   return null;
 }

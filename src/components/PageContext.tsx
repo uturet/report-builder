@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 
-export type Page = "report" | "chart-builder";
+export type Page = {
+  name: "report" | "chart-builder",
+  id: string
+};
 
 interface PageContextValue {
   page: Page;
@@ -10,7 +13,7 @@ interface PageContextValue {
 const PageContext = createContext<PageContextValue | undefined>(undefined);
 
 export function PageProvider({ children }: { children: ReactNode }) {
-  const [page, setPage] = useState<Page>("report");
+  const [page, setPage] = useState<Page>({name: "report", id: 'default'});
 
   return (
     <PageContext.Provider value={{ page, setPage }}>
