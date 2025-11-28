@@ -6,7 +6,7 @@ type Select = {
     FROM: string,
     ON?: { left: string, right: string },
     JOIN?: Select[],
-    WHERE?: { column: string, operation: string, value: string },
+    WHERE?: { column: string, operation: string, value: string, value2?: string },
     GROUP_BY?: string,
     HAVING?: string,
     ORDER_BY?: "ASC" | "DESC"
@@ -21,7 +21,7 @@ const testSelect: Select = {
             FROM: "other_table",
             ON: { left: "", right: "" },
             JOIN: [],
-            WHERE: { column: "col2", operation: ">", value: "10" },
+            WHERE: { column: "col2", operation: ">", value: "10"},
             GROUP_BY: "",
             HAVING: "",
             ORDER_BY: "ASC"
@@ -83,7 +83,7 @@ const OPERATOINS = [
     "NOT",
 ]
 
-type WhereCondition = { column: string, operation: string, value: string }
+type WhereCondition = { column: string, operation: string, value: string, value2?: string}
 type WhereOperationProps = {
     colType: string,
     columns: string[],
@@ -98,19 +98,32 @@ function WhereOperation(
 
     return (
         <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div onClick={() => setOpen(prev => prev === "operation" ? null : "column")} className='py-2 px-3 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => prev === "column" ? null : "column")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedCondition.column ? selectedCondition.column : "Column"} <NavArrowDown className='inline' />
             </div>
 
-            <div onClick={() => setOpen(prev => prev === "column" ? null : "operation")} className='py-2 px-3 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => prev === "operation" ? null : "operation")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedCondition.operation ? selectedCondition.operation : "Operation"} <NavArrowDown className='inline' />
             </div>
 
-            <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                <input type="text" value={selectedCondition.value} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
-            </div>
+            {!(selectedCondition.operation === "IS NULL" || selectedCondition.operation === "IS NOT NULL") && (
+                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    <input type="text" value={selectedCondition.value} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
+                </div>
+            )}
+            
+            {selectedCondition.operation === "BETWEEN" && (
+                <>
+                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    AND
+                </div>
+                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    <input type="text" value={selectedCondition.value2} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
+                </div>
+                </>
+            )}
 
-            {open === "column" && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open === "column" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -122,7 +135,7 @@ function WhereOperation(
                 </div>))}
             </div>)}
 
-            {open === "operation" && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open === "operation" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {OPERATOINS.map((operation, i) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -152,7 +165,7 @@ function FromOperation(
 
     return (
         <div className='relative z-1'>
-            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedTable ? selectedTable : "From Table"} <NavArrowDown className='inline' />
             </div>
             {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
