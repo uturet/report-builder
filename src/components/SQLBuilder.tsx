@@ -4,12 +4,12 @@ import { NavArrowDown } from 'iconoir-react'
 
 type Select = {
     FROM: string,
-    ON?: { left: string, right: string },
-    JOIN?: Select[],
-    WHERE?: { column: string, operation: string, value: string, value2?: string },
-    GROUP_BY?: string,
-    HAVING?: string,
-    ORDER_BY?: "ASC" | "DESC"
+    ON: { left: string, right: string },
+    JOIN: Select[],
+    WHERE: { column: string, operation: string, value: string, value2?: string },
+    GROUP_BY: string,
+    HAVING: string,
+    ORDER_BY: {column: string, order: "ASC" | "DESC"}
 }
 
 
@@ -24,13 +24,13 @@ const testSelect: Select = {
             WHERE: { column: "col2", operation: ">", value: "10"},
             GROUP_BY: "",
             HAVING: "",
-            ORDER_BY: "ASC"
+            ORDER_BY: {column: "col1", order: "ASC"}
         }
     ],
     WHERE: { column: "col1", operation: ">", value: "10" },
     GROUP_BY: "",
     HAVING: "",
-    ORDER_BY: "ASC"
+    ORDER_BY: {column: "col2", order: "ASC"}
 }
 
 const OPERATOINS = [
@@ -82,6 +82,107 @@ const OPERATOINS = [
     "OR",
     "NOT",
 ]
+
+const FUNCTIONS = [
+    "SUM",
+    "AVG",
+    "MIN",
+    "MAX",
+    "COUNT",
+    // COUNT(*),
+    // Text / String:
+    "MIN",
+    "MAX",
+    "COUNT",
+    // Date / Time (stored as text, real, or integer in SQLite):
+    "MIN",
+    "MAX",
+    "COUNT",
+    // Boolean / Logical (SQLite has no strict boolean type):
+    "SUM",
+    "COUNT",
+
+]
+
+type HavingOperationProps = {
+    columns: string[],
+    selectedColumn: {fn: string, column: string, operation: string, value: string},
+    setSelectedColumn: (fn: string, column: string, operation: string, value: string) => void
+}
+
+function HavingOperation(
+    { columns, selectedColumn, setSelectedColumn }: HavingOperationProps
+) {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
+            </div>
+            
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : "")}>
+                ASC
+            </div>
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : "")}>
+                DESC
+            </div>
+
+            {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {columns.map((column) => (<div
+                    onClick={() => {
+                        setOpen(false)
+                        setSelectedColumn(column, selectedColumn.order)
+                    }}
+                    key={column}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {column}
+                </div>))}
+            </div>)}
+
+        </div>
+    )
+}
+
+
+type OrderByOperationProps = {
+    columns: string[],
+    selectedColumn: {column: string, order: "ASC"|"DESC"},
+    setSelectedColumn: (t: string, order: "ASC"|"DESC") => void
+}
+
+function OrderByOperation(
+    { columns, selectedColumn, setSelectedColumn }: OrderByOperationProps
+) {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
+            </div>
+            
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : "")}>
+                ASC
+            </div>
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : "")}>
+                DESC
+            </div>
+
+            {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {columns.map((column) => (<div
+                    onClick={() => {
+                        setOpen(false)
+                        setSelectedColumn(column, selectedColumn.order)
+                    }}
+                    key={column}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {column}
+                </div>))}
+            </div>)}
+
+        </div>
+    )
+}
+
 
 type WhereCondition = { column: string, operation: string, value: string, value2?: string}
 type WhereOperationProps = {
@@ -187,6 +288,8 @@ function FromOperation(
 export default function SQLBuilder() {
     const [select, setSelect] = useState<Select>(testSelect)
     const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
+    const columns = ["col1", "col2", "col3"]
+    console.log(select)
 
     return (
         <div className='flex flex-row gap-1'>
@@ -195,11 +298,16 @@ export default function SQLBuilder() {
                 setSelectedTable={(table) => setSelect(prev => ({ ...prev, FROM: table }))}
                 tables={tables} />
 
-            {select.WHERE && <WhereOperation
+            <WhereOperation
                 colType="string"
-                columns={["col1", "col2", "col3"]}
+                columns={columns}
                 selectedCondition={select.WHERE}
-                setSelectedCondition={(w: WhereCondition) => setSelect((prev: Select) => ({ ...prev, WHERE: w }))} />}
+                setSelectedCondition={(w: WhereCondition) => setSelect((prev: Select) => ({ ...prev, WHERE: w }))} />
+
+            <OrderByOperation 
+                columns={columns}
+                selectedColumn={select.ORDER_BY}
+                setSelectedColumn={(t, order) => setSelect((prev: Select) => ({ ...prev, ORDER_BY: {column: t, order: order} }))} />
 
         </div>
     )
