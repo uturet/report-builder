@@ -21,6 +21,78 @@ const testSelect: Select = {
         {
             FROM: "other_table",
             ON: { left: "", right: "" },
+            JOIN: [
+                {
+                    FROM: "other_table",
+                    ON: { left: "", right: "" },
+                    JOIN: [],
+                    WHERE: { column: "col2", operation: ">", value: "10" },
+                    GROUP_BY: "",
+                    HAVING: { fn: "", column: "", operation: "", value: "" },
+                    ORDER_BY: { column: "col1", order: "ASC" }
+                },
+                {
+                    FROM: "other_table",
+                    ON: { left: "", right: "" },
+                    JOIN: [
+                        {
+                            FROM: "other_table",
+                            ON: { left: "", right: "" },
+                            JOIN: [],
+                            WHERE: { column: "col2", operation: ">", value: "10" },
+                            GROUP_BY: "",
+                            HAVING: { fn: "", column: "", operation: "", value: "" },
+                            ORDER_BY: { column: "col1", order: "ASC" }
+                        },
+                        {
+                            FROM: "other_table",
+                            ON: { left: "", right: "" },
+                            JOIN: [],
+                            WHERE: { column: "col2", operation: ">", value: "10" },
+                            GROUP_BY: "",
+                            HAVING: { fn: "", column: "", operation: "", value: "" },
+                            ORDER_BY: { column: "col1", order: "ASC" }
+                        },
+                        {
+                            FROM: "other_table",
+                            ON: { left: "", right: "" },
+                            JOIN: [],
+                            WHERE: { column: "col2", operation: ">", value: "10" },
+                            GROUP_BY: "",
+                            HAVING: { fn: "", column: "", operation: "", value: "" },
+                            ORDER_BY: { column: "col1", order: "ASC" }
+                        }],
+                    WHERE: { column: "col2", operation: ">", value: "10" },
+                    GROUP_BY: "",
+                    HAVING: { fn: "", column: "", operation: "", value: "" },
+                    ORDER_BY: { column: "col1", order: "ASC" }
+                },
+                {
+                    FROM: "other_table",
+                    ON: { left: "", right: "" },
+                    JOIN: [],
+                    WHERE: { column: "col2", operation: ">", value: "10" },
+                    GROUP_BY: "",
+                    HAVING: { fn: "", column: "", operation: "", value: "" },
+                    ORDER_BY: { column: "col1", order: "ASC" }
+                }],
+            WHERE: { column: "col2", operation: ">", value: "10" },
+            GROUP_BY: "",
+            HAVING: { fn: "", column: "", operation: "", value: "" },
+            ORDER_BY: { column: "col1", order: "ASC" }
+        },
+        {
+            FROM: "other_table",
+            ON: { left: "", right: "" },
+            JOIN: [],
+            WHERE: { column: "col2", operation: ">", value: "10" },
+            GROUP_BY: "",
+            HAVING: { fn: "", column: "", operation: "", value: "" },
+            ORDER_BY: { column: "col1", order: "ASC" }
+        },
+        {
+            FROM: "other_table",
+            ON: { left: "", right: "" },
             JOIN: [],
             WHERE: { column: "col2", operation: ">", value: "10" },
             GROUP_BY: "",
@@ -375,38 +447,53 @@ type SelectComponentProps = {
 }
 function SelectComponent({ level, select, setSelect, tables, columns }: SelectComponentProps) {
     return (
-        <div className={`ml-${level} flex flex-row gap-2 flex-wrap`}>
-            <FromOperation
-                selectedTable={select.FROM}
-                setSelectedTable={(table) => setSelect(({ FROM: table }))}
+        <>
+            <div className='flex flex-row gap-2 flex-wrap' style={{paddingLeft: `${level*20}px`}}>
+                <FromOperation
+                    selectedTable={select.FROM}
+                    setSelectedTable={(table) => setSelect(({ FROM: table }))}
+                    tables={tables}
+                />
+
+                <WhereOperation
+                    colType="string"
+                    columns={columns}
+                    selectedCondition={select.WHERE}
+                    setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
+                />
+
+                <OrderByOperation
+                    columns={columns}
+                    selectedColumn={select.ORDER_BY}
+                    setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
+                />
+
+                <GroupByOperation
+                    columns={columns}
+                    selectedColumn={select.GROUP_BY}
+                    setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
+                />
+
+                <HavingOperation
+                    columns={columns}
+                    havingValue={select.HAVING}
+                    setHavingValue={(h) => setSelect({ HAVING: h })}
+                />
+            </div>
+
+            {select.JOIN.map((innSelect, i) => (<SelectComponent
+                key={`${level}-${i}-${innSelect.FROM}`}
+                level={level + 1}
+                select={innSelect}
+                setSelect={(s) => {
+                    const tmpJoin = [...select.JOIN]
+                    tmpJoin[i] = { ...tmpJoin[i], ...s }
+                    setSelect(({ "JOIN": tmpJoin }))
+                }}
                 tables={tables}
-            />
-
-            <WhereOperation
-                colType="string"
-                columns={columns}
-                selectedCondition={select.WHERE}
-                setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
-            />
-
-            <OrderByOperation
-                columns={columns}
-                selectedColumn={select.ORDER_BY}
-                setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
-            />
-
-            <GroupByOperation
-                columns={columns}
-                selectedColumn={select.GROUP_BY}
-                setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
-            />
-
-            <HavingOperation
-                columns={columns}
-                havingValue={select.HAVING}
-                setHavingValue={(h) => setSelect({ HAVING: h })}
-            />
-        </div>
+                columns={columns} />
+            ))}
+        </>
     )
 }
 
@@ -417,9 +504,9 @@ export default function SQLBuilder() {
     const columns = ["col1", "col2", "col3"]
 
     return (
-        <div className='flex flex-col gap-4'>
+        <div className='flex flex-col gap-8'>
             <SelectComponent
-                level={1}
+                level={0}
                 select={select}
                 setSelect={(s) => setSelect(prev => ({ ...prev, ...s }))}
                 tables={tables}
