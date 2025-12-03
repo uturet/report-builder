@@ -116,7 +116,11 @@ function HavingOperation(
 ) {
     const [open, setOpen] = useState<null | "fn" | "column" | "operation">()
     return (
-        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+        <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+                Having
+            </div>
+
             <div onClick={() => setOpen(prev => prev === "fn" ? null : "fn")} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {havingValue.fn ? havingValue.fn : "Function"} <NavArrowDown className='inline' />
             </div>
@@ -130,42 +134,42 @@ function HavingOperation(
             </div>
 
             {!(havingValue.operation === "IS NULL" || havingValue.operation === "IS NOT NULL") && (
-                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                    <input type="text" value={havingValue.value} onChange={(e) => setHavingValue({ ...havingValue, value: e.target.value })} />
+                <div className='rounded-md cursor-pointer transition-all duration-200'>
+                    <input className='py-2 px-3 ring-1 w-[150px] ring-gray-200 focus-visible:ring-2 focus-visible:ring-gray-200 focus-visible:outline-none rounded-md transition-all duration-200' type="text" value={havingValue.value} onChange={(e) => setHavingValue({ ...havingValue, value: e.target.value })} />
                 </div>
             )}
 
-            {open === "fn" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
-                {FUNCTIONS.map((fn) => (<div
+            {open === "fn" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {FUNCTIONS.map((fn, i) => (<div
                     onClick={() => {
                         setOpen(null)
                         setHavingValue({ ...havingValue, fn: fn })
                     }}
-                    key={fn}
+                    key={`${i}-${fn}`}
                     className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
                     {fn}
                 </div>))}
             </div>)}
 
-            {open === "column" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
-                {columns.map((column) => (<div
+            {open === "column" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {columns.map((column, i) => (<div
                     onClick={() => {
                         setOpen(null)
                         setHavingValue({ ...havingValue, column: column })
                     }}
-                    key={column}
+                    key={`${i}-${column}`}
                     className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
                     {column}
                 </div>))}
             </div>)}
 
-            {open === "operation" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
-                {OPERATOINS.map((operation) => (<div
+            {open === "operation" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {OPERATOINS.map((operation, i) => (<div
                     onClick={() => {
                         setOpen(null)
                         setHavingValue({ ...havingValue, operation: operation })
                     }}
-                    key={operation}
+                    key={`${i}-${operation}`}
                     className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
                     {operation}
                 </div>))}
@@ -185,12 +189,16 @@ function GroupByOperation(
 ) {
     const [open, setOpen] = useState(false)
     return (
-        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+        <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+                Group By
+            </div>
+            
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn ? selectedColumn : "Group By Column"} <NavArrowDown className='inline' />
             </div>
 
-            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -216,20 +224,25 @@ function OrderByOperation(
     { columns, selectedColumn, setSelectedColumn }: OrderByOperationProps
 ) {
     const [open, setOpen] = useState(false)
+
     return (
-        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+        <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+                Order By
+            </div>
+            
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
             </div>
 
-            <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : "")}>
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : " bg-white")}>
                 ASC
             </div>
-            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : "")}>
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : " bg-white")}>
                 DESC
             </div>
 
-            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -260,7 +273,11 @@ function WhereOperation(
     const [open, setOpen] = useState<null | "column" | "operation">()
 
     return (
-        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+        <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+                Where
+            </div>
+            
             <div onClick={() => setOpen(prev => prev === "column" ? null : "column")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedCondition.column ? selectedCondition.column : "Column"} <NavArrowDown className='inline' />
             </div>
@@ -270,8 +287,8 @@ function WhereOperation(
             </div>
 
             {!(selectedCondition.operation === "IS NULL" || selectedCondition.operation === "IS NOT NULL") && (
-                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                    <input type="text" value={selectedCondition.value} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
+                <div className='rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    <input className='py-2 px-3 ring-1 w-[150px] ring-gray-200 focus-visible:ring-2 focus-visible:ring-gray-200 focus-visible:outline-none rounded-md transition-all duration-200' type="text" value={selectedCondition.value} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
                 </div>
             )}
 
@@ -280,13 +297,13 @@ function WhereOperation(
                     <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
                         AND
                     </div>
-                    <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                        <input type="text" value={selectedCondition.value2} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
+                    <div className='rounded-md cursor-pointer bg-white transition-all duration-200'>
+                        <input className='py-2 px-3 ring-1 w-[150px] ring-gray-200 focus-visible:ring-2 focus-visible:ring-gray-200 focus-visible:outline-none rounded-md transition-all duration-200' type="text" value={selectedCondition.value2} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
                     </div>
                 </>
             )}
 
-            {open === "column" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open === "column" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column, i) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -298,7 +315,7 @@ function WhereOperation(
                 </div>))}
             </div>)}
 
-            {open === "operation" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open === "operation" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {OPERATOINS.map((operation, i) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -326,11 +343,15 @@ function FromOperation(
     const [open, setOpen] = useState(false)
 
     return (
-        <div className='relative z-1'>
+        <div className='relative'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+                From
+            </div>
+
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedTable ? selectedTable : "From Table"} <NavArrowDown className='inline' />
             </div>
-            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {tables.map((table) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -350,10 +371,9 @@ export default function SQLBuilder() {
     const [select, setSelect] = useState<Select>(testSelect)
     const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
     const columns = ["col1", "col2", "col3"]
-    console.log(select)
 
     return (
-        <div className='flex flex-row gap-1'>
+        <div className='flex flex-row gap-2 flex-wrap'>
             <FromOperation
                 selectedTable={select.FROM}
                 setSelectedTable={(table) => setSelect(prev => ({ ...prev, FROM: table }))}
