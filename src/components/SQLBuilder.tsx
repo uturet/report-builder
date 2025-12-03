@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { NavArrowDown } from 'iconoir-react'
+import { NavArrowDown, Plus } from 'iconoir-react'
 
 
 
@@ -13,6 +13,15 @@ type Select = {
     ORDER_BY: { column: string, order: "ASC" | "DESC" }
 }
 
+const DEFAULT_SELECT: Select = {
+    FROM: "",
+    ON: { left: "", right: "" },
+    JOIN: [],
+    WHERE: { column: "", operation: "", value: "" },
+    GROUP_BY: "",
+    HAVING: { fn: "", column: "", operation: "", value: "" },
+    ORDER_BY: { column: "", order: "ASC" }
+}
 
 const testSelect: Select = {
     FROM: "some_table",
@@ -442,44 +451,53 @@ type SelectComponentProps = {
     level: number,
     select: Select,
     setSelect: (s: Partial<Select>) => void,
+    removeSelect?: () => void,
     tables: string[],
     columns: string[]
 }
-function SelectComponent({ level, select, setSelect, tables, columns }: SelectComponentProps) {
+function SelectComponent({ level, select, setSelect, removeSelect = () => { }, tables, columns }: SelectComponentProps) {
     return (
         <>
-            <div className='flex flex-row gap-2 flex-wrap' style={{paddingLeft: `${level*20}px`}}>
-                <FromOperation
-                    selectedTable={select.FROM}
-                    setSelectedTable={(table) => setSelect(({ FROM: table }))}
-                    tables={tables}
-                />
+            <div className='flex flex-row gap-2'>
+                {level > 0 && (<div onClick={removeSelect}
+                    className='py-1 px-1 text-nowrap flex items-center w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                    <Plus className='rotate-45' />
+                </div>)}
 
-                <WhereOperation
-                    colType="string"
-                    columns={columns}
-                    selectedCondition={select.WHERE}
-                    setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
-                />
+                <div className='flex flex-row gap-2 flex-wrap' style={{ paddingLeft: `${level * 20}px` }}>
+                    <FromOperation
+                        selectedTable={select.FROM}
+                        setSelectedTable={(table) => setSelect(({ FROM: table }))}
+                        tables={tables}
+                    />
 
-                <OrderByOperation
-                    columns={columns}
-                    selectedColumn={select.ORDER_BY}
-                    setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
-                />
+                    <WhereOperation
+                        colType="string"
+                        columns={columns}
+                        selectedCondition={select.WHERE}
+                        setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
+                    />
 
-                <GroupByOperation
-                    columns={columns}
-                    selectedColumn={select.GROUP_BY}
-                    setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
-                />
+                    <OrderByOperation
+                        columns={columns}
+                        selectedColumn={select.ORDER_BY}
+                        setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
+                    />
 
-                <HavingOperation
-                    columns={columns}
-                    havingValue={select.HAVING}
-                    setHavingValue={(h) => setSelect({ HAVING: h })}
-                />
+                    <GroupByOperation
+                        columns={columns}
+                        selectedColumn={select.GROUP_BY}
+                        setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
+                    />
+
+                    <HavingOperation
+                        columns={columns}
+                        havingValue={select.HAVING}
+                        setHavingValue={(h) => setSelect({ HAVING: h })}
+                    />
+                </div>
             </div>
+
 
             {select.JOIN.map((innSelect, i) => (<SelectComponent
                 key={`${level}-${i}-${innSelect.FROM}`}
@@ -490,9 +508,26 @@ function SelectComponent({ level, select, setSelect, tables, columns }: SelectCo
                     tmpJoin[i] = { ...tmpJoin[i], ...s }
                     setSelect(({ "JOIN": tmpJoin }))
                 }}
+                removeSelect={() => setSelect({ JOIN: [...select.JOIN.filter((_, j) => j !== i)] })}
                 tables={tables}
                 columns={columns} />
             ))}
+
+            <div className='relative group w-[fit-content]'>
+
+                <div onClick={() => setSelect({ JOIN: [...select.JOIN, structuredClone(DEFAULT_SELECT)] })}
+                    style={{ marginLeft: `${level * 20}px` }}
+                    className='py-1 px-2 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                    <Plus className='inline' />
+                </div>
+
+                <div className="absolute z-1 left-1/2 -translate-x-1/2 mt-2 w-max 
+                        bg-gray-800 text-white text-sm px-3 py-2 rounded-md 
+                        opacity-0 group-hover:opacity-100 
+                        transition-opacity duration-200 pointer-events-none">
+                    Add <span className='font-semibold'>JOIN</span> for <span className='font-semibold'>{select.FROM}</span>
+                </div>
+            </div>
         </>
     )
 }
