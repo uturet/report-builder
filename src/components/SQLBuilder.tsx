@@ -117,7 +117,7 @@ function HavingOperation(
     const [open, setOpen] = useState<null | "fn" | "column" | "operation">()
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
                 Having
             </div>
 
@@ -190,10 +190,10 @@ function GroupByOperation(
     const [open, setOpen] = useState(false)
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
                 Group By
             </div>
-            
+
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn ? selectedColumn : "Group By Column"} <NavArrowDown className='inline' />
             </div>
@@ -227,10 +227,10 @@ function OrderByOperation(
 
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
                 Order By
             </div>
-            
+
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
             </div>
@@ -274,10 +274,10 @@ function WhereOperation(
 
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
                 Where
             </div>
-            
+
             <div onClick={() => setOpen(prev => prev === "column" ? null : "column")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedCondition.column ? selectedCondition.column : "Column"} <NavArrowDown className='inline' />
             </div>
@@ -344,7 +344,7 @@ function FromOperation(
 
     return (
         <div className='relative'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-500 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
                 From
             </div>
 
@@ -366,17 +366,19 @@ function FromOperation(
     )
 }
 
-
-export default function SQLBuilder() {
-    const [select, setSelect] = useState<Select>(testSelect)
-    const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
-    const columns = ["col1", "col2", "col3"]
-
+type SelectComponentProps = {
+    level: number,
+    select: Select,
+    setSelect: (s: Partial<Select>) => void,
+    tables: string[],
+    columns: string[]
+}
+function SelectComponent({ level, select, setSelect, tables, columns }: SelectComponentProps) {
     return (
-        <div className='flex flex-row gap-2 flex-wrap'>
+        <div className={`ml-${level} flex flex-row gap-2 flex-wrap`}>
             <FromOperation
                 selectedTable={select.FROM}
-                setSelectedTable={(table) => setSelect(prev => ({ ...prev, FROM: table }))}
+                setSelectedTable={(table) => setSelect(({ FROM: table }))}
                 tables={tables}
             />
 
@@ -384,25 +386,44 @@ export default function SQLBuilder() {
                 colType="string"
                 columns={columns}
                 selectedCondition={select.WHERE}
-                setSelectedCondition={(w: WhereCondition) => setSelect((prev: Select) => ({ ...prev, WHERE: w }))}
+                setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
             />
 
             <OrderByOperation
                 columns={columns}
                 selectedColumn={select.ORDER_BY}
-                setSelectedColumn={(t, order) => setSelect((prev: Select) => ({ ...prev, ORDER_BY: { column: t, order: order } }))}
+                setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
             />
 
             <GroupByOperation
                 columns={columns}
                 selectedColumn={select.GROUP_BY}
-                setSelectedColumn={(c) => setSelect(prev => ({ ...prev, GROUP_BY: c }))}
+                setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
             />
 
             <HavingOperation
                 columns={columns}
                 havingValue={select.HAVING}
-                setHavingValue={(h) => setSelect(prev => ({ ...prev, HAVING: h }))}
+                setHavingValue={(h) => setSelect({ HAVING: h })}
+            />
+        </div>
+    )
+}
+
+
+export default function SQLBuilder() {
+    const [select, setSelect] = useState<Select>(testSelect)
+    const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
+    const columns = ["col1", "col2", "col3"]
+
+    return (
+        <div className='flex flex-col gap-4'>
+            <SelectComponent
+                level={1}
+                select={select}
+                setSelect={(s) => setSelect(prev => ({ ...prev, ...s }))}
+                tables={tables}
+                columns={columns}
             />
         </div>
     )
