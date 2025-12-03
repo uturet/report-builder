@@ -2,14 +2,15 @@ import React, { useState } from 'react'
 import { NavArrowDown } from 'iconoir-react'
 
 
+
 type Select = {
     FROM: string,
     ON: { left: string, right: string },
     JOIN: Select[],
     WHERE: { column: string, operation: string, value: string, value2?: string },
     GROUP_BY: string,
-    HAVING: string,
-    ORDER_BY: {column: string, order: "ASC" | "DESC"}
+    HAVING: { fn: string, column: string, operation: string, value: string },
+    ORDER_BY: { column: string, order: "ASC" | "DESC" }
 }
 
 
@@ -21,16 +22,16 @@ const testSelect: Select = {
             FROM: "other_table",
             ON: { left: "", right: "" },
             JOIN: [],
-            WHERE: { column: "col2", operation: ">", value: "10"},
+            WHERE: { column: "col2", operation: ">", value: "10" },
             GROUP_BY: "",
-            HAVING: "",
-            ORDER_BY: {column: "col1", order: "ASC"}
+            HAVING: { fn: "", column: "", operation: "", value: "" },
+            ORDER_BY: { column: "col1", order: "ASC" }
         }
     ],
     WHERE: { column: "col1", operation: ">", value: "10" },
     GROUP_BY: "",
-    HAVING: "",
-    ORDER_BY: {column: "col2", order: "ASC"}
+    HAVING: { fn: "", column: "", operation: "", value: "" },
+    ORDER_BY: { column: "col2", order: "ASC" }
 }
 
 const OPERATOINS = [
@@ -104,34 +105,53 @@ const FUNCTIONS = [
 
 ]
 
+type HavingValue = { fn: string, column: string, operation: string, value: string }
 type HavingOperationProps = {
     columns: string[],
-    selectedColumn: {fn: string, column: string, operation: string, value: string},
-    setSelectedColumn: (fn: string, column: string, operation: string, value: string) => void
+    havingValue: HavingValue,
+    setHavingValue: (v: HavingValue) => void
 }
-
 function HavingOperation(
-    { columns, selectedColumn, setSelectedColumn }: HavingOperationProps
+    { columns, havingValue, setHavingValue }: HavingOperationProps
 ) {
-    const [open, setOpen] = useState(false)
+    const [open, setOpen] = useState<null | "fn" | "column" | "operation">()
     return (
         <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
-                {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
-            </div>
-            
-            <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : "")}>
-                ASC
-            </div>
-            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : "")}>
-                DESC
+            <div onClick={() => setOpen(prev => prev === "fn" ? null : "fn")} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {havingValue.fn ? havingValue.fn : "Function"} <NavArrowDown className='inline' />
             </div>
 
-            {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            <div onClick={() => setOpen(prev => prev === "column" ? null : "column")} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {havingValue.column ? havingValue.column : "Column"} <NavArrowDown className='inline' />
+            </div>
+
+            <div onClick={() => setOpen(prev => prev === "operation" ? null : "operation")} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {havingValue.operation ? havingValue.operation : "Operation"} <NavArrowDown className='inline' />
+            </div>
+
+            {!(havingValue.operation === "IS NULL" || havingValue.operation === "IS NOT NULL") && (
+                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    <input type="text" value={havingValue.value} onChange={(e) => setHavingValue({ ...havingValue, value: e.target.value })} />
+                </div>
+            )}
+
+            {open === "fn" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {FUNCTIONS.map((fn) => (<div
+                    onClick={() => {
+                        setOpen(null)
+                        setHavingValue({ ...havingValue, fn: fn })
+                    }}
+                    key={fn}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {fn}
+                </div>))}
+            </div>)}
+
+            {open === "column" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column) => (<div
                     onClick={() => {
-                        setOpen(false)
-                        setSelectedColumn(column, selectedColumn.order)
+                        setOpen(null)
+                        setHavingValue({ ...havingValue, column: column })
                     }}
                     key={column}
                     className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
@@ -139,6 +159,48 @@ function HavingOperation(
                 </div>))}
             </div>)}
 
+            {open === "operation" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {OPERATOINS.map((operation) => (<div
+                    onClick={() => {
+                        setOpen(null)
+                        setHavingValue({ ...havingValue, operation: operation })
+                    }}
+                    key={operation}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {operation}
+                </div>))}
+            </div>)}
+        </div>
+    )
+}
+
+
+type GroupByOperationProps = {
+    columns: string[],
+    selectedColumn: string,
+    setSelectedColumn: (c: string) => void
+}
+function GroupByOperation(
+    { columns, selectedColumn, setSelectedColumn }: GroupByOperationProps
+) {
+    const [open, setOpen] = useState(false)
+    return (
+        <div className='relative z-1 flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {selectedColumn ? selectedColumn : "Group By Column"} <NavArrowDown className='inline' />
+            </div>
+
+            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {columns.map((column) => (<div
+                    onClick={() => {
+                        setOpen(false)
+                        setSelectedColumn(column)
+                    }}
+                    key={column}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {column}
+                </div>))}
+            </div>)}
         </div>
     )
 }
@@ -146,8 +208,8 @@ function HavingOperation(
 
 type OrderByOperationProps = {
     columns: string[],
-    selectedColumn: {column: string, order: "ASC"|"DESC"},
-    setSelectedColumn: (t: string, order: "ASC"|"DESC") => void
+    selectedColumn: { column: string, order: "ASC" | "DESC" },
+    setSelectedColumn: (t: string, order: "ASC" | "DESC") => void
 }
 
 function OrderByOperation(
@@ -159,7 +221,7 @@ function OrderByOperation(
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
             </div>
-            
+
             <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : "")}>
                 ASC
             </div>
@@ -167,7 +229,7 @@ function OrderByOperation(
                 DESC
             </div>
 
-            {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -184,7 +246,7 @@ function OrderByOperation(
 }
 
 
-type WhereCondition = { column: string, operation: string, value: string, value2?: string}
+type WhereCondition = { column: string, operation: string, value: string, value2?: string }
 type WhereOperationProps = {
     colType: string,
     columns: string[],
@@ -212,25 +274,25 @@ function WhereOperation(
                     <input type="text" value={selectedCondition.value} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
                 </div>
             )}
-            
+
             {selectedCondition.operation === "BETWEEN" && (
                 <>
-                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                    AND
-                </div>
-                <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
-                    <input type="text" value={selectedCondition.value2} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
-                </div>
+                    <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                        AND
+                    </div>
+                    <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                        <input type="text" value={selectedCondition.value2} onChange={(e) => setSelectedCondition({ ...selectedCondition, value: e.target.value })} />
+                    </div>
                 </>
             )}
 
             {open === "column" && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
-                {columns.map((column) => (<div
+                {columns.map((column, i) => (<div
                     onClick={() => {
                         setOpen(null)
                         setSelectedCondition({ ...selectedCondition, column: column })
                     }}
-                    key={column}
+                    key={`${i}-${column}`}
                     className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
                     {column}
                 </div>))}
@@ -247,7 +309,6 @@ function WhereOperation(
                     {operation}
                 </div>))}
             </div>)}
-
         </div>
     )
 }
@@ -269,7 +330,7 @@ function FromOperation(
             <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedTable ? selectedTable : "From Table"} <NavArrowDown className='inline' />
             </div>
-            {open && (<div className='absolute overflow-hidden mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+            {open && (<div className='absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
                 {tables.map((table) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -296,19 +357,33 @@ export default function SQLBuilder() {
             <FromOperation
                 selectedTable={select.FROM}
                 setSelectedTable={(table) => setSelect(prev => ({ ...prev, FROM: table }))}
-                tables={tables} />
+                tables={tables}
+            />
 
             <WhereOperation
                 colType="string"
                 columns={columns}
                 selectedCondition={select.WHERE}
-                setSelectedCondition={(w: WhereCondition) => setSelect((prev: Select) => ({ ...prev, WHERE: w }))} />
+                setSelectedCondition={(w: WhereCondition) => setSelect((prev: Select) => ({ ...prev, WHERE: w }))}
+            />
 
-            <OrderByOperation 
+            <OrderByOperation
                 columns={columns}
                 selectedColumn={select.ORDER_BY}
-                setSelectedColumn={(t, order) => setSelect((prev: Select) => ({ ...prev, ORDER_BY: {column: t, order: order} }))} />
+                setSelectedColumn={(t, order) => setSelect((prev: Select) => ({ ...prev, ORDER_BY: { column: t, order: order } }))}
+            />
 
+            <GroupByOperation
+                columns={columns}
+                selectedColumn={select.GROUP_BY}
+                setSelectedColumn={(c) => setSelect(prev => ({ ...prev, GROUP_BY: c }))}
+            />
+
+            <HavingOperation
+                columns={columns}
+                havingValue={select.HAVING}
+                setHavingValue={(h) => setSelect(prev => ({ ...prev, HAVING: h }))}
+            />
         </div>
     )
 }
