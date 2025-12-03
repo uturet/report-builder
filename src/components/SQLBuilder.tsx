@@ -26,89 +26,7 @@ const DEFAULT_SELECT: Select = {
 const testSelect: Select = {
     FROM: "some_table",
     ON: { left: "", right: "" },
-    JOIN: [
-        {
-            FROM: "other_table",
-            ON: { left: "", right: "" },
-            JOIN: [
-                {
-                    FROM: "other_table",
-                    ON: { left: "", right: "" },
-                    JOIN: [],
-                    WHERE: { column: "col2", operation: ">", value: "10" },
-                    GROUP_BY: "",
-                    HAVING: { fn: "", column: "", operation: "", value: "" },
-                    ORDER_BY: { column: "col1", order: "ASC" }
-                },
-                {
-                    FROM: "other_table",
-                    ON: { left: "", right: "" },
-                    JOIN: [
-                        {
-                            FROM: "other_table",
-                            ON: { left: "", right: "" },
-                            JOIN: [],
-                            WHERE: { column: "col2", operation: ">", value: "10" },
-                            GROUP_BY: "",
-                            HAVING: { fn: "", column: "", operation: "", value: "" },
-                            ORDER_BY: { column: "col1", order: "ASC" }
-                        },
-                        {
-                            FROM: "other_table",
-                            ON: { left: "", right: "" },
-                            JOIN: [],
-                            WHERE: { column: "col2", operation: ">", value: "10" },
-                            GROUP_BY: "",
-                            HAVING: { fn: "", column: "", operation: "", value: "" },
-                            ORDER_BY: { column: "col1", order: "ASC" }
-                        },
-                        {
-                            FROM: "other_table",
-                            ON: { left: "", right: "" },
-                            JOIN: [],
-                            WHERE: { column: "col2", operation: ">", value: "10" },
-                            GROUP_BY: "",
-                            HAVING: { fn: "", column: "", operation: "", value: "" },
-                            ORDER_BY: { column: "col1", order: "ASC" }
-                        }],
-                    WHERE: { column: "col2", operation: ">", value: "10" },
-                    GROUP_BY: "",
-                    HAVING: { fn: "", column: "", operation: "", value: "" },
-                    ORDER_BY: { column: "col1", order: "ASC" }
-                },
-                {
-                    FROM: "other_table",
-                    ON: { left: "", right: "" },
-                    JOIN: [],
-                    WHERE: { column: "col2", operation: ">", value: "10" },
-                    GROUP_BY: "",
-                    HAVING: { fn: "", column: "", operation: "", value: "" },
-                    ORDER_BY: { column: "col1", order: "ASC" }
-                }],
-            WHERE: { column: "col2", operation: ">", value: "10" },
-            GROUP_BY: "",
-            HAVING: { fn: "", column: "", operation: "", value: "" },
-            ORDER_BY: { column: "col1", order: "ASC" }
-        },
-        {
-            FROM: "other_table",
-            ON: { left: "", right: "" },
-            JOIN: [],
-            WHERE: { column: "col2", operation: ">", value: "10" },
-            GROUP_BY: "",
-            HAVING: { fn: "", column: "", operation: "", value: "" },
-            ORDER_BY: { column: "col1", order: "ASC" }
-        },
-        {
-            FROM: "other_table",
-            ON: { left: "", right: "" },
-            JOIN: [],
-            WHERE: { column: "col2", operation: ">", value: "10" },
-            GROUP_BY: "",
-            HAVING: { fn: "", column: "", operation: "", value: "" },
-            ORDER_BY: { column: "col1", order: "ASC" }
-        }
-    ],
+    JOIN: [],
     WHERE: { column: "col1", operation: ">", value: "10" },
     GROUP_BY: "",
     HAVING: { fn: "", column: "", operation: "", value: "" },
@@ -198,7 +116,7 @@ function HavingOperation(
     const [open, setOpen] = useState<null | "fn" | "column" | "operation">()
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
                 Having
             </div>
 
@@ -233,6 +151,14 @@ function HavingOperation(
             </div>)}
 
             {open === "column" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                <div
+                    onClick={() => {
+                        setOpen(null)
+                        setHavingValue({ ...havingValue, column: "" })
+                    }}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    Null
+                </div>
                 {columns.map((column, i) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -271,7 +197,7 @@ function GroupByOperation(
     const [open, setOpen] = useState(false)
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
                 Group By
             </div>
 
@@ -280,6 +206,14 @@ function GroupByOperation(
             </div>
 
             {open && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                <div
+                    onClick={() => {
+                        setOpen(false)
+                        setSelectedColumn("")
+                    }}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    Null
+                </div>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -300,7 +234,6 @@ type OrderByOperationProps = {
     selectedColumn: { column: string, order: "ASC" | "DESC" },
     setSelectedColumn: (t: string, order: "ASC" | "DESC") => void
 }
-
 function OrderByOperation(
     { columns, selectedColumn, setSelectedColumn }: OrderByOperationProps
 ) {
@@ -308,7 +241,7 @@ function OrderByOperation(
 
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
                 Order By
             </div>
 
@@ -324,6 +257,14 @@ function OrderByOperation(
             </div>
 
             {open && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                <div
+                    onClick={() => {
+                        setOpen(false)
+                        setSelectedColumn("", selectedColumn.order)
+                    }}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    Null
+                </div>
                 {columns.map((column) => (<div
                     onClick={() => {
                         setOpen(false)
@@ -334,7 +275,6 @@ function OrderByOperation(
                     {column}
                 </div>))}
             </div>)}
-
         </div>
     )
 }
@@ -347,7 +287,6 @@ type WhereOperationProps = {
     selectedCondition: WhereCondition,
     setSelectedCondition: (w: WhereCondition) => void
 }
-
 function WhereOperation(
     { colType, columns, selectedCondition, setSelectedCondition }: WhereOperationProps
 ) {
@@ -355,7 +294,7 @@ function WhereOperation(
 
     return (
         <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
                 Where
             </div>
 
@@ -417,7 +356,6 @@ type FromOperationProps = {
     selectedTable: string,
     setSelectedTable: (t: string) => void
 }
-
 function FromOperation(
     { tables, selectedTable, setSelectedTable }: FromOperationProps
 ) {
@@ -425,7 +363,7 @@ function FromOperation(
 
     return (
         <div className='relative'>
-            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
                 From
             </div>
 
@@ -490,14 +428,13 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
                         setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
                     />
 
-                    <HavingOperation
+                    {select.GROUP_BY && <HavingOperation
                         columns={columns}
                         havingValue={select.HAVING}
                         setHavingValue={(h) => setSelect({ HAVING: h })}
-                    />
+                    />}
                 </div>
             </div>
-
 
             {select.JOIN.map((innSelect, i) => (<SelectComponent
                 key={`${level}-${i}-${innSelect.FROM}`}
