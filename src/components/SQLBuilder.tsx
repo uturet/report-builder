@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { NavArrowDown, Plus } from 'iconoir-react'
 
 
@@ -110,7 +110,7 @@ function HavingOperation(
                 Having
             </div>
 
-            <div onClick={() => setOpen(prev => prev === "fn" ? null : "fn")} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => prev === "fn" ? null : "fn")} className='py-2 px-3 text-nowrap w-[fit-content] rounded-l-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {havingValue.fn ? havingValue.fn : "Function"} <NavArrowDown className='inline' />
             </div>
 
@@ -191,7 +191,7 @@ function GroupByOperation(
                 Group By
             </div>
 
-            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn ? selectedColumn : "Group By Column"} <NavArrowDown className='inline' />
             </div>
 
@@ -235,14 +235,14 @@ function OrderByOperation(
                 Order By
             </div>
 
-            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+            <div onClick={() => setOpen(prev => !prev)} className='py-2 px-3 text-nowrap w-[fit-content] rounded-l-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
                 {selectedColumn.column ? selectedColumn.column : "Order By Column"} <NavArrowDown className='inline' />
             </div>
 
             <div onClick={() => setSelectedColumn(selectedColumn.column, "ASC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "ASC" ? " bg-stone-200" : " bg-white")}>
                 ASC
             </div>
-            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] cursor-pointer hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : " bg-white")}>
+            <div onClick={() => setSelectedColumn(selectedColumn.column, "DESC")} className={'py-2 px-3 text-nowrap w-[fit-content] rounded-r-md cursor-pointer hover:bg-stone-100 transition-all duration-200' + (selectedColumn.order === "DESC" ? " bg-stone-200" : " bg-white")}>
                 DESC
             </div>
 
@@ -304,7 +304,7 @@ function WhereOperation(
 
             {selectedCondition.operation === "BETWEEN" && (
                 <>
-                    <div className='py-2 px-3 rounded-md cursor-pointer bg-white transition-all duration-200'>
+                    <div className='py-2 px-3 rounded-md transition-all duration-200'>
                         AND
                     </div>
                     <div className='rounded-md cursor-pointer bg-white transition-all duration-200'>
@@ -340,6 +340,60 @@ function WhereOperation(
     )
 }
 
+
+type OnOperationProps = {
+    selectedTable: string,
+    parentTable: string,
+    selectedColumns: string[],
+    parentColumns: string[],
+    setSelectedOn: (on: Select["ON"]) => void,
+    selectedOn: Select["ON"]
+}
+function OnOperation(
+    { selectedTable, parentTable, selectedColumns, parentColumns, setSelectedOn, selectedOn }: OnOperationProps
+) {
+    const [open, setOpen] = useState<null | "left" | "right">(null)
+
+    return (
+        <div className='relative flex w-[fit-content] border-1 border-gray-200 rounded-md'>
+            <div className='absolute bg-white left-1/2 -translate-x-1/2 -top-[3px] h-[5px] rounded-md leading-1 text-gray-300 text-sm whitespace-nowrap'>
+                On
+            </div>
+
+            <div onClick={() => setOpen(prev => prev === "left" ? null : "left")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {selectedOn.left ? selectedOn.left : `From ${parentTable} Column`} <NavArrowDown className='inline' />
+            </div>
+
+            <div onClick={() => setOpen(prev => prev === "right" ? null : "right")} className='py-2 px-3 text-nowrap rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
+                {selectedOn.right ? selectedOn.right : `To ${selectedTable} Column`} <NavArrowDown className='inline' />
+            </div>
+
+            {open === "left" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {parentColumns.map((col) => (<div
+                    onClick={() => {
+                        setOpen(null)
+                        setSelectedOn({ left: col, right: selectedOn.right })
+                    }}
+                    key={col}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {col}
+                </div>))}
+            </div>)}
+
+            {open === "right" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                {selectedColumns.map((col) => (<div
+                    onClick={() => {
+                        setOpen(null)
+                        setSelectedOn({ left: selectedOn.left, right: col })
+                    }}
+                    key={col}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    {col}
+                </div>))}
+            </div>)}
+        </div>
+    )
+}
 
 type FromOperationProps = {
     tables: string[],
@@ -381,9 +435,10 @@ type SelectComponentProps = {
     setSelect: (s: Partial<Select>) => void,
     removeSelect?: () => void,
     tables: string[],
-    columns: string[]
+    tablesColumns: { [key: string]: string[] },
+    parentTable: string
 }
-function SelectComponent({ level, select, setSelect, removeSelect = () => { }, tables, columns }: SelectComponentProps) {
+function SelectComponent({ level, select, setSelect, removeSelect = () => { }, tables, tablesColumns, parentTable }: SelectComponentProps) {
     return (
         <>
             <div className='flex flex-row gap-2'>
@@ -399,27 +454,40 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
                         tables={tables}
                     />
 
-                    <WhereOperation
-                        colType="string"
-                        columns={columns}
-                        selectedCondition={select.WHERE}
-                        setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
-                    />
+                    {select.FROM && parentTable && <OnOperation
+                        selectedTable={select.FROM}
+                        parentTable={parentTable}
+                        selectedColumns={tablesColumns[select.FROM]}
+                        parentColumns={tablesColumns[parentTable]}
+                        setSelectedOn={(on) => setSelect({ ON: on })}
+                        selectedOn={select.ON}
+                    />}
 
-                    <OrderByOperation
-                        columns={columns}
-                        selectedColumn={select.ORDER_BY}
-                        setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
-                    />
+                    {select.FROM && ((select.ON.left && select.ON.right) || !parentTable) &&
+                        <>
+                            <WhereOperation
+                                colType="string"
+                                columns={tablesColumns[select.FROM]}
+                                selectedCondition={select.WHERE}
+                                setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
+                            />
 
-                    <GroupByOperation
-                        columns={columns}
-                        selectedColumn={select.GROUP_BY}
-                        setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
-                    />
+                            <OrderByOperation
+                                columns={tablesColumns[select.FROM]}
+                                selectedColumn={select.ORDER_BY}
+                                setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
+                            />
+
+                            <GroupByOperation
+                                columns={tablesColumns[select.FROM]}
+                                selectedColumn={select.GROUP_BY}
+                                setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
+                            />
+                        </>}
+
 
                     {select.GROUP_BY && <HavingOperation
-                        columns={columns}
+                        columns={tablesColumns[select.FROM]}
                         havingValue={select.HAVING}
                         setHavingValue={(h) => setSelect({ HAVING: h })}
                     />}
@@ -437,7 +505,9 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
                 }}
                 removeSelect={() => setSelect({ JOIN: [...select.JOIN.filter((_, j) => j !== i)] })}
                 tables={tables}
-                columns={columns} />
+                parentTable={select.FROM}
+                tablesColumns={tablesColumns} 
+                />
             ))}
 
             <div className='relative group w-[fit-content]'>
@@ -473,7 +543,15 @@ type SQLBuilderProps = {
 export default function SQLBuilder({ setSQL }: SQLBuilderProps) {
     const [select, setSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
     const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
-    const columns = ["col1", "col2", "col3"]
+    const tablesColumns = {
+        "some_table": ["some_table.col1", "some_table.col2", "some_table.col3"],
+        "other_table": ["other_table.col1", "other_table.col2", "other_table.col3"],
+        "wrong_table": ["wrong_table.col1", "wrong_table.col2", "wrong_table.col3"],
+    }
+
+    useEffect(() => {
+        setSQL(convertSelectToSQL(select))
+    }, [select])
 
     return (
         <div className='flex flex-col gap-8'>
@@ -482,7 +560,8 @@ export default function SQLBuilder({ setSQL }: SQLBuilderProps) {
                 select={select}
                 setSelect={(s) => setSelect(prev => ({ ...prev, ...s }))}
                 tables={tables}
-                columns={columns}
+                tablesColumns={tablesColumns}
+                parentTable={""}
             />
         </div>
     )
