@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { usePage } from '../components/PageContext'
 import Sidebar from '../components/Sidebar'
 import Main from '../components/Main'
@@ -11,6 +11,7 @@ import SQLBuilder from '../components/SQLBuilder'
 
 export default function ReportPage() {
   const { page, setPage } = usePage()
+  const [sql, setSQL] = useState("")
 
   return (
     <div className='bg-stone-100 flex h-dvh w-dvw text-black'>
@@ -37,7 +38,7 @@ export default function ReportPage() {
           <h1>{page.id}</h1>
         </Section>
         <Section>
-          <SQLBuilder />
+          <SQLBuilder setSQL={setSQL} />
         </Section>
       </Main>
     </div>

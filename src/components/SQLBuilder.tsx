@@ -460,7 +460,17 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
 }
 
 
-export default function SQLBuilder() {
+function convertSelectToSQL(select: Select): string {
+
+
+    return ""
+}
+
+
+type SQLBuilderProps = {
+    setSQL: (sql: string) => void
+}
+export default function SQLBuilder({ setSQL }: SQLBuilderProps) {
     const [select, setSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
     const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
     const columns = ["col1", "col2", "col3"]
