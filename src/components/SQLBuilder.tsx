@@ -23,16 +23,6 @@ const DEFAULT_SELECT: Select = {
     ORDER_BY: { column: "", order: "ASC" }
 }
 
-const testSelect: Select = {
-    FROM: "some_table",
-    ON: { left: "", right: "" },
-    JOIN: [],
-    WHERE: { column: "col1", operation: ">", value: "10" },
-    GROUP_BY: "",
-    HAVING: { fn: "", column: "", operation: "", value: "" },
-    ORDER_BY: { column: "col2", order: "ASC" }
-}
-
 const OPERATOINS = [
     // 1. Numeric columns (INT, FLOAT, DECIMAL, etc.)
     "=",
@@ -471,7 +461,7 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
 
 
 export default function SQLBuilder() {
-    const [select, setSelect] = useState<Select>(testSelect)
+    const [select, setSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
     const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
     const columns = ["col1", "col2", "col3"]
 
