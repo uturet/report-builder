@@ -7,7 +7,6 @@ import Section from '../components/Section'
 import { Download } from 'iconoir-react'
 import SidebarSection from '../components/SidebarSection'
 
-
 export default function ReportPage() {
   const {page, setPage} = usePage()
 
