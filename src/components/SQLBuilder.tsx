@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavArrowDown, Plus } from 'iconoir-react'
+import { selectToSQL, type TablesTypes } from '../util'
 
 
 
-type Select = {
+export type Select = {
     FROM: string,
     ON: { left: string, right: string },
     JOIN: Select[],
@@ -314,6 +315,14 @@ function WhereOperation(
             )}
 
             {open === "column" && (<div className='z-1 absolute overflow-hidden top-[100%] mt-1 bg-white border-1 border-gray-200 rounded-md w-[200px] shadow-md max-h-[500px] scroll-hidden transition-all duration-400 active:max-h-0 active:border-0'>
+                <div
+                    onClick={() => {
+                        setOpen(null)
+                        setSelectedCondition({ ...selectedCondition, column: "" })
+                    }}
+                    className='px-3 py-2 cursor-pointer hover:bg-stone-100 active:bg-stone-200 text-nowrap overflow-x-hidden transition-all duration-200'>
+                    Null
+                </div>
                 {columns.map((column, i) => (<div
                     onClick={() => {
                         setOpen(null)
@@ -435,7 +444,7 @@ type SelectComponentProps = {
     setSelect: (s: Partial<Select>) => void,
     removeSelect?: () => void,
     tables: string[],
-    tablesColumns: { [key: string]: string[] },
+    tablesColumns: TablesTypes,
     parentTable: string
 }
 function SelectComponent({ level, select, setSelect, removeSelect = () => { }, tables, tablesColumns, parentTable }: SelectComponentProps) {
@@ -457,8 +466,8 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
                     {select.FROM && parentTable && <OnOperation
                         selectedTable={select.FROM}
                         parentTable={parentTable}
-                        selectedColumns={tablesColumns[select.FROM]}
-                        parentColumns={tablesColumns[parentTable]}
+                        selectedColumns={tablesColumns[select.FROM].columns}
+                        parentColumns={tablesColumns[parentTable].columns}
                         setSelectedOn={(on) => setSelect({ ON: on })}
                         selectedOn={select.ON}
                     />}
@@ -467,19 +476,19 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
                         <>
                             <WhereOperation
                                 colType="string"
-                                columns={tablesColumns[select.FROM]}
+                                columns={tablesColumns[select.FROM].columns}
                                 selectedCondition={select.WHERE}
                                 setSelectedCondition={(w: WhereCondition) => setSelect({ WHERE: w })}
                             />
 
                             <OrderByOperation
-                                columns={tablesColumns[select.FROM]}
+                                columns={tablesColumns[select.FROM].columns}
                                 selectedColumn={select.ORDER_BY}
                                 setSelectedColumn={(t, order) => setSelect({ ORDER_BY: { column: t, order: order } })}
                             />
 
                             <GroupByOperation
-                                columns={tablesColumns[select.FROM]}
+                                columns={tablesColumns[select.FROM].columns}
                                 selectedColumn={select.GROUP_BY}
                                 setSelectedColumn={(c) => setSelect({ GROUP_BY: c })}
                             />
@@ -487,7 +496,7 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
 
 
                     {select.GROUP_BY && <HavingOperation
-                        columns={tablesColumns[select.FROM]}
+                        columns={tablesColumns[select.FROM].columns}
                         havingValue={select.HAVING}
                         setHavingValue={(h) => setSelect({ HAVING: h })}
                     />}
@@ -530,27 +539,19 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
 }
 
 
-function convertSelectToSQL(select: Select): string {
-
-
-    return ""
-}
-
-
 type SQLBuilderProps = {
     setSQL: (sql: string) => void
+    tables: string[], 
+    tablesTypes: TablesTypes
 }
-export default function SQLBuilder({ setSQL }: SQLBuilderProps) {
+export default function SQLBuilder({ setSQL, tables, tablesTypes }: SQLBuilderProps) {
     const [select, setSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
-    const [tables, setTables] = useState<string[]>(["some_table", "other_table", "wrong_table"])
-    const tablesColumns = {
-        "some_table": ["some_table.col1", "some_table.col2", "some_table.col3"],
-        "other_table": ["other_table.col1", "other_table.col2", "other_table.col3"],
-        "wrong_table": ["wrong_table.col1", "wrong_table.col2", "wrong_table.col3"],
-    }
 
     useEffect(() => {
-        setSQL(convertSelectToSQL(select))
+        const sql = selectToSQL(select)
+        if (sql) {
+            setSQL(selectToSQL(select))
+        }
     }, [select])
 
     return (
@@ -560,7 +561,7 @@ export default function SQLBuilder({ setSQL }: SQLBuilderProps) {
                 select={select}
                 setSelect={(s) => setSelect(prev => ({ ...prev, ...s }))}
                 tables={tables}
-                tablesColumns={tablesColumns}
+                tablesColumns={tablesTypes}
                 parentTable={""}
             />
         </div>

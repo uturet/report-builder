@@ -1,5 +1,6 @@
 import Papa from "papaparse";
 import type { Database as SqlJsDatabase } from "sql.js";
+import type { Select } from "./components/SQLBuilder";
 
 export type TablesTypes = {
   [key: string]: {
@@ -265,3 +266,92 @@ export async function handleFiles(
 }
 
 
+export function selectToSQL(node: Select): string {
+  const lit = (v: string) => {
+    if (v === null || v === undefined) return "NULL";
+    if (/^-?\d+(\.\d+)?$/.test(v)) return v;
+    return `'${v.replace(/'/g, "''")}'`;
+  };
+
+  const buildWhere = (w: Select["WHERE"] | undefined): string => {
+    if (!w) return "";
+    const c = (w.column ?? "").trim();
+    const op = (w.operation ?? "").trim();
+    const val = (w.value ?? "").trim();
+    if (!c || !op) return "";
+    if (op.toUpperCase() === "BETWEEN" && w.value2 !== undefined && w.value2 !== "") {
+      return `WHERE ${c} BETWEEN ${lit(val)} AND ${lit((w.value2 ?? "").toString())}`;
+    }
+    if (op.toUpperCase() === "IN") {
+      const items = val.split(",").map(s => s.trim()).filter(Boolean).map(lit).join(", ");
+      return items ? `WHERE ${c} IN (${items})` : "";
+    }
+    if (val === "") return `WHERE ${c} ${op}`;
+    return `WHERE ${c} ${op} ${lit(val)}`;
+  };
+
+  const buildHaving = (h: Select["HAVING"] | undefined): string => {
+    if (!h) return "";
+    const fn = (h.fn ?? "").trim();
+    const col = (h.column ?? "").trim();
+    const op = (h.operation ?? "").trim();
+    const val = (h.value ?? "").trim();
+    if (!fn || !col || !op) return "";
+    return `HAVING ${fn}(${col}) ${op} ${lit(val)}`;
+  };
+
+  const joinClauses: string[] = [];
+  const orderBys: { column: string, order: "ASC" | "DESC" }[] = [];
+
+  function walkJoins(current: Select) {
+    if (current.ORDER_BY && current.ORDER_BY.column?.trim()) {
+      orderBys.push({ column: current.ORDER_BY.column.trim(), order: current.ORDER_BY.order });
+    }
+
+    for (const j of current.JOIN || []) {
+      if (!j.FROM) continue;
+      const onL = (j.ON?.left ?? "").trim();
+      const onR = (j.ON?.right ?? "").trim();
+      const onClause = (onL && onR) ? ` ON ${onL} = ${onR}` : "";
+      joinClauses.push(`JOIN ${j.FROM}${onClause}`);
+      walkJoins(j);
+    }
+  }
+
+  if (node.ORDER_BY && node.ORDER_BY.column?.trim()) {
+    orderBys.push({ column: node.ORDER_BY.column.trim(), order: node.ORDER_BY.order });
+  }
+
+  const fromPart = `FROM ${node.FROM}`;
+
+  walkJoins(node);
+
+  const wherePart = buildWhere(node.WHERE);
+
+  const groupByPart = node.GROUP_BY && node.GROUP_BY.trim() ? `GROUP BY ${node.GROUP_BY.trim()}` : "";
+  const havingPart = buildHaving(node.HAVING);
+
+  const seen = new Set<string>();
+  const orderList = orderBys
+    .filter(ob => {
+      const key = `${ob.column} ${ob.order}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(ob => `${ob.column} ${ob.order}`);
+
+  const orderPart = orderList.length ? `ORDER BY ${orderList.join(", ")}` : "";
+
+  const parts = [
+    "SELECT *",
+    fromPart,
+    ...joinClauses,
+    wherePart,
+    groupByPart,
+    havingPart,
+    orderPart
+  ].filter(Boolean);
+
+  return parts.join("\n");
+}

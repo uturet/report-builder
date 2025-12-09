@@ -2,7 +2,7 @@ import React, { type ReactNode } from 'react'
 import { NavArrowLeft } from 'iconoir-react'
 
 
-export default function SidebarSection({ title, items, collapsable = false }: { title: string, items: string[], collapsable?: boolean }) {
+export default function SidebarSection({ children, title, items, collapsable = false }: { children?: ReactNode, title: string, items: string[], collapsable?: boolean }) {
     return (
         <div className='border-b-2 border-gray-200 py-5'>
             <div className={`px-4 pb-3 group` + collapsable ? " cursor-pointer" : ""}>
@@ -14,6 +14,7 @@ export default function SidebarSection({ title, items, collapsable = false }: { 
                     {/* <div className='absolute h-full w-[4px] bg-black left-0 rounded-r-md'></div> */}
                     <p className='text-nowrap overflow-x-scroll scroll-hidden'>{item}</p>
                 </div>))}
+                {children}
             </div>
         </div>
     )
