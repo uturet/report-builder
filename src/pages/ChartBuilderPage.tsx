@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { usePage } from '../components/PageContext'
 import Sidebar from '../components/Sidebar'
 import Main from '../components/Main'
