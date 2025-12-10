@@ -9,6 +9,7 @@ import SidebarSection from '../components/SidebarSection'
 import SQLBuilder from '../components/SQLBuilder'
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type QueryExecResult } from "sql.js";
 import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
+import ChartView from '../components/ChartView'
 
 
 export default function ChartBuilderPage({ pageId }: { pageId: string }) {
@@ -151,6 +152,9 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
         </Section>
         <Section>
           <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
+        </Section>
+        <Section>
+          <ChartView />
         </Section>
       </Main>
     </div>
