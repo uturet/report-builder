@@ -355,3 +355,90 @@ export function selectToSQL(node: Select): string {
 
   return parts.join("\n");
 }
+
+
+export type Select = {
+  FROM: string,
+  ON: { left: string, right: string },
+  JOIN: Select[],
+  WHERE: { column: string, operation: string, value: string, value2?: string },
+  GROUP_BY: string,
+  HAVING: { fn: string, column: string, operation: string, value: string },
+  ORDER_BY: { column: string, order: "ASC" | "DESC" }
+}
+
+export const DEFAULT_SELECT: Select = {
+  FROM: "",
+  ON: { left: "", right: "" },
+  JOIN: [],
+  WHERE: { column: "", operation: "", value: "" },
+  GROUP_BY: "",
+  HAVING: { fn: "", column: "", operation: "", value: "" },
+  ORDER_BY: { column: "", order: "ASC" }
+}
+
+
+
+export const WASM_PATH = "/sql-wasm.wasm"
+
+export const IDB_DB_NAME = "sqljs-pages";
+export const IDB_STORE = "pages";
+
+export function openIndexedDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const idb = req.result;
+      if (!idb.objectStoreNames.contains(IDB_STORE)) {
+        idb.createObjectStore(IDB_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+    req.onblocked = () => console.warn("IndexedDB open blocked");
+  });
+}
+
+export async function savePageState(pageId: string, db: SqlJsDatabase, tables: string[], tableTypes: TablesTypes, userSQL: string, userSelect: Select) {
+  try {
+    const idb = await openIndexedDB();
+    const tx = idb.transaction(IDB_STORE, "readwrite");
+    const store = tx.objectStore(IDB_STORE);
+
+    let exported: Uint8Array | null = null;
+    try {
+      if (db) exported = db.export();
+    } catch (err) {
+      console.warn("Failed to export DB for saving:", err);
+    }
+
+    const toStore = {
+      pageId,
+      dbBytes: exported,
+      tables,
+      tableTypes,
+      userSQL,
+      userSelect,
+      savedAt: Date.now(),
+    };
+
+    store.put(toStore, pageId);
+
+    return new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => {
+        idb.close();
+        resolve();
+      };
+      tx.onabort = () => {
+        idb.close();
+        reject(tx.error);
+      };
+      tx.onerror = () => {
+        idb.close();
+        reject(tx.error);
+      };
+    });
+  } catch (err) {
+    console.error("Failed to save page state to IndexedDB:", err);
+  }
+}

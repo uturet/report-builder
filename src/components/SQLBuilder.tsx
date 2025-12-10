@@ -1,28 +1,6 @@
 import { useEffect, useState } from 'react'
 import { NavArrowDown, Plus } from 'iconoir-react'
-import { selectToSQL, type TablesTypes } from '../util'
-
-
-
-export type Select = {
-    FROM: string,
-    ON: { left: string, right: string },
-    JOIN: Select[],
-    WHERE: { column: string, operation: string, value: string, value2?: string },
-    GROUP_BY: string,
-    HAVING: { fn: string, column: string, operation: string, value: string },
-    ORDER_BY: { column: string, order: "ASC" | "DESC" }
-}
-
-const DEFAULT_SELECT: Select = {
-    FROM: "",
-    ON: { left: "", right: "" },
-    JOIN: [],
-    WHERE: { column: "", operation: "", value: "" },
-    GROUP_BY: "",
-    HAVING: { fn: "", column: "", operation: "", value: "" },
-    ORDER_BY: { column: "", order: "ASC" }
-}
+import { selectToSQL, type TablesTypes, type Select, DEFAULT_SELECT } from '../util'
 
 const OPERATOINS = [
     // 1. Numeric columns (INT, FLOAT, DECIMAL, etc.)
@@ -540,13 +518,13 @@ function SelectComponent({ level, select, setSelect, removeSelect = () => { }, t
 
 
 type SQLBuilderProps = {
+    select: Select,
+    setSelect: React.Dispatch<React.SetStateAction<Select>>
     setSQL: (sql: string) => void
     tables: string[], 
     tablesTypes: TablesTypes
 }
-export default function SQLBuilder({ setSQL, tables, tablesTypes }: SQLBuilderProps) {
-    const [select, setSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
-
+export default function SQLBuilder({ select, setSelect, setSQL, tables, tablesTypes }: SQLBuilderProps) {
     useEffect(() => {
         const sql = selectToSQL(select)
         if (sql) {

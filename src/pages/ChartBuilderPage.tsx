@@ -4,25 +4,23 @@ import Sidebar from '../components/Sidebar'
 import Main from '../components/Main'
 import SidebarHead from '../components/SidebarHead'
 import Section from '../components/Section'
-import { MapsArrow, NavArrowDown, Plus } from 'iconoir-react'
+import { MapsArrow, Plus } from 'iconoir-react'
 import SidebarSection from '../components/SidebarSection'
 import SQLBuilder from '../components/SQLBuilder'
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type QueryExecResult } from "sql.js";
-import { handleFiles, type TablesTypes } from "../util"
+import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
 
 
-const WASM_PATH = "/sql-wasm.wasm"
-
-
-export default function ReportPage() {
+export default function ChartBuilderPage({ pageId }: { pageId: string }) {
   const { page, setPage } = usePage()
-  const [status, setStatus] = useState<string>("idle");
+  const [isReady, setIsReady] = useState<boolean>(false)
   const [tables, setTables] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const dbRef = useRef<SqlJsDatabase | null>(null);
   const SQLRef = useRef<SqlJsStatic | null>(null);
   const [tableTypes, setTableTypes] = useState<TablesTypes>({})
   const [userSQL, setUserSQL] = useState<string>("")
+  const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
   const [SQLResult, setSQLREsult] = useState<string>("")
 
   const handleClick = () => {
@@ -31,19 +29,71 @@ export default function ReportPage() {
 
   async function ensureSqlJs() {
     if (!SQLRef.current) {
-      setStatus("loading sql.js...");
       const SQL = await initSqlJs({ locateFile: () => WASM_PATH });
       SQLRef.current = SQL;
-      setStatus("sql.js loaded");
     }
     if (!dbRef.current) {
       dbRef.current = new (SQLRef.current as SqlJsStatic).Database();
     }
   }
 
+  async function loadPageState() {
+    await ensureSqlJs();
+
+    try {
+      const idb = await openIndexedDB();
+      const tx = idb.transaction(IDB_STORE, "readonly");
+      const store = tx.objectStore(IDB_STORE);
+      const getReq = store.get(pageId);
+
+      return new Promise<void>((resolve, reject) => {
+        getReq.onsuccess = async () => {
+          const value = getReq.result;
+          idb.close();
+
+          if (!value) {
+            resolve();
+            return;
+          }
+
+          setTables(value.tables);
+          setTableTypes(value.tableTypes);
+          setUserSQL(value.userSQL);
+          setUserSelect(value.userSelect);
+
+          if (value.dbBytes) {
+            try {
+              dbRef.current = new (SQLRef.current as SqlJsStatic).Database(value.dbBytes);
+            } catch (err) {
+              console.error("Failed to restore DB from IndexedDB:", err);
+            }
+          }
+          resolve();
+        };
+
+        getReq.onerror = () => {
+          idb.close();
+          reject(getReq.error);
+        };
+      });
+    } catch (err) {
+      console.error("Failed to load page state from IndexedDB:", err);
+    }
+  }
+
   useEffect(() => {
-    ensureSqlJs()
+    loadPageState()
   }, [])
+
+  useEffect(() => {
+    if (dbRef.current) {
+      if (isReady) {
+        savePageState(pageId, dbRef.current, tables, tableTypes, userSQL, userSelect)
+      } else {
+        setIsReady(true)
+      }
+    }
+  }, [isReady, dbRef.current, tables, tableTypes, userSQL, userSelect])
 
   useEffect(() => {
     if (!userSQL || !dbRef.current) {
@@ -90,7 +140,7 @@ export default function ReportPage() {
               type="file"
               accept=".csv,text/csv"
               multiple
-              onChange={(e) => handleFiles(e.target.files, ensureSqlJs, dbRef.current!, () => setStatus("Invalid file"), (t) => setTables(prev => [...prev, t]), (tt) => setTableTypes(prev => ({ ...prev, ...tt })))}
+              onChange={(e) => handleFiles(e.target.files, ensureSqlJs, dbRef.current!, () => {}, (t) => setTables(prev => [...prev, t]), (tt) => setTableTypes(prev => ({ ...prev, ...tt })))}
             />
           </div>
         </SidebarSection>
@@ -100,7 +150,7 @@ export default function ReportPage() {
           <h1>{page.id}</h1>
         </Section>
         <Section>
-          <SQLBuilder setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
+          <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
         </Section>
       </Main>
     </div>
