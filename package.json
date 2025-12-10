@@ -12,6 +12,8 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
     "@types/sql.js": "^1.4.9",
+    "ag-grid-community": "^35.0.0",
+    "ag-grid-react": "^35.0.0",
     "chart.js": "^4.5.1",
     "iconoir-react": "^7.11.0",
     "papaparse": "^5.5.3",

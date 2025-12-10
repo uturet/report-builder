@@ -10,6 +10,7 @@ import SQLBuilder from '../components/SQLBuilder'
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type QueryExecResult } from "sql.js";
 import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
 import ChartView from '../components/ChartView'
+import TableView from '../components/TableView'
 
 
 export default function ChartBuilderPage({ pageId }: { pageId: string }) {
@@ -22,7 +23,8 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
   const [tableTypes, setTableTypes] = useState<TablesTypes>({})
   const [userSQL, setUserSQL] = useState<string>("")
   const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
-  const [SQLResult, setSQLREsult] = useState<string>("")
+  const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
+  const [errMessage, setErrMessage] = useState("")
 
   const handleClick = () => {
     inputRef.current?.click();
@@ -98,17 +100,17 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
 
   useEffect(() => {
     if (!userSQL || !dbRef.current) {
-      setSQLREsult("")
+      setSQLREsult(null)
       return
     }
     try {
       const result: QueryExecResult[] = dbRef.current.exec(userSQL)
-      setSQLREsult(JSON.stringify(result[0], null, 2))
+      setSQLREsult(result[0])
     } catch (error) {
       if (error instanceof Error) {
-        setSQLREsult(error.message)
+        setErrMessage(error.message)
       } else {
-        setSQLREsult(`Error: ${error}`)
+        setErrMessage(`Error: ${error}`)
       }
     }
   }, [userSQL])
@@ -141,7 +143,7 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
               type="file"
               accept=".csv,text/csv"
               multiple
-              onChange={(e) => handleFiles(e.target.files, ensureSqlJs, dbRef.current!, () => {}, (t) => setTables(prev => [...prev, t]), (tt) => setTableTypes(prev => ({ ...prev, ...tt })))}
+              onChange={(e) => handleFiles(e.target.files, ensureSqlJs, dbRef.current!, () => { }, (t) => setTables(prev => [...prev, t]), (tt) => setTableTypes(prev => ({ ...prev, ...tt })))}
             />
           </div>
         </SidebarSection>
@@ -155,6 +157,9 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
         </Section>
         <Section>
           <ChartView />
+        </Section>
+        <Section>
+          <TableView data={SQLResult ? SQLResult.values : []} columns={SQLResult ? SQLResult.columns : []} />
         </Section>
       </Main>
     </div>
