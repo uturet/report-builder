@@ -27,7 +27,7 @@ export default function LineChart() {
         data: [10, 20, 15, 40, 30, 50],
         borderWidth: 2,
         borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.3)',
+        backgroundColor: 'rgba(250, 250, 250, 0.3)',
         tension: 0.3
       },
       {

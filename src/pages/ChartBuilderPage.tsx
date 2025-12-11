@@ -11,6 +11,7 @@ import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type Query
 import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
 import ChartView from '../components/ChartView'
 import TableView from '../components/TableView'
+import ChartOptions from '../components/ChartOptions'
 
 
 export default function ChartBuilderPage({ pageId }: { pageId: string }) {
@@ -155,9 +156,15 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
         <Section>
           <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
         </Section>
+
+        <Section>
+          <ChartOptions columns={SQLResult ? SQLResult.columns : []} />
+        </Section>
+
         <Section>
           <ChartView />
         </Section>
+
         <Section>
           <TableView data={SQLResult ? SQLResult.values : []} columns={SQLResult ? SQLResult.columns : []} />
         </Section>
