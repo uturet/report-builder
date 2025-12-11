@@ -14,7 +14,7 @@ import TableView from '../components/TableView'
 import ChartOptions from '../components/ChartOptions'
 
 
-export default function ChartBuilderPage({ pageId }: { pageId: string }) {
+export default function ChartBuilderPage() {
   const { page, setPage } = usePage()
   const [isReady, setIsReady] = useState<boolean>(false)
   const [tables, setTables] = useState<string[]>([]);
@@ -25,7 +25,6 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
   const [userSQL, setUserSQL] = useState<string>("")
   const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
   const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
-  const [chartValues, setChartValues] = useState<ScatterValue[]>([])
   const [errMessage, setErrMessage] = useState("")
   const [label, setLabel] = useState<string>("") // SELECT DISTINCT column_name
   const [data, setData] = useState<string>("")
@@ -51,7 +50,7 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
       const idb = await openIndexedDB();
       const tx = idb.transaction(IDB_STORE, "readonly");
       const store = tx.objectStore(IDB_STORE);
-      const getReq = store.get(pageId);
+      const getReq = store.get(page.id);
 
       return new Promise<void>((resolve, reject) => {
         getReq.onsuccess = async () => {
@@ -65,8 +64,6 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
 
           setTables(value.tables);
           setTableTypes(value.tableTypes);
-          setUserSQL(value.userSQL);
-          setUserSelect(value.userSelect);
 
           if (value.dbBytes) {
             try {
@@ -90,17 +87,19 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
 
   useEffect(() => {
     loadPageState()
+    setUserSQL(page.props!.chartValues.userSQL);
+    setUserSelect(page.props!.chartValues.userSelect);
   }, [])
 
   useEffect(() => {
     if (dbRef.current) {
       if (isReady) {
-        savePageState(pageId, dbRef.current, tables, tableTypes, userSQL, userSelect)
+        savePageState(page.id, dbRef.current, tables, tableTypes)
       } else {
         setIsReady(true)
       }
     }
-  }, [isReady, dbRef.current, tables, tableTypes, userSQL, userSelect])
+  }, [isReady, dbRef.current, tables, tableTypes])
 
   useEffect(() => {
     if (!userSQL || !dbRef.current) {
@@ -120,20 +119,24 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
   }, [userSQL])
 
   useEffect(() => {
+    page.props!.setChartValues({userSQL, userSelect, value: page.props!.chartValues.value})
+  }, [userSQL, userSelect])
+
+  useEffect(() => {
     try {
       if (label && data && SQLResult) {
         const xI = SQLResult!.columns.indexOf(label)
         const yI = SQLResult!.columns.indexOf(data)
         if (xI < 0 || yI < 0) {
-          setChartValues([])
+          page.props!.setChartValues({userSQL, userSelect, value: []})
         } else {
-          setChartValues(SQLResult!.values.map(row => ({
+          page.props!.setChartValues({userSQL, userSelect, value: SQLResult!.values.map(row => ({
             x: Number(row[xI]),
             y: Number(row[yI])
-          })))
+          }))})
         }
       } else {
-        setChartValues([])
+        page.props!.setChartValues({userSQL, userSelect, value: []})
       }
     } catch (error) { }
   }, [label, data, SQLResult])
@@ -173,9 +176,6 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
       </Sidebar>
       <Main>
         <Section>
-          <h1>{page.id}</h1>
-        </Section>
-        <Section>
           <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
         </Section>
 
@@ -189,10 +189,11 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
         </Section>
 
         <Section>
-          <ChartView values={chartValues} />
+          <ChartView values={page.props!.chartValues.value} />
         </Section>
 
         <Section>
+          <div className='text-sm mb-2 text-gray-300'>Count: {SQLResult ? SQLResult.values.length : 0}</div>
           <TableView data={SQLResult ? SQLResult.values : []} columns={SQLResult ? SQLResult.columns : []} />
         </Section>
       </Main>

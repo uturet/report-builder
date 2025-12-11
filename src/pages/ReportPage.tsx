@@ -9,6 +9,7 @@ import SidebarSection from '../components/SidebarSection'
 import uuid4 from 'uuid4'
 import ChartView from '../components/ChartView'
 import TextEditor from '../components/TextEditor'
+import { DEFAULT_SELECT, type Select } from '../util'
 
 type ReportItem = {
   id: string,
@@ -35,15 +36,14 @@ export default function ReportPage() {
         />
       </Sidebar>
       <Main>
-        <Section onClick={() => setPage({ name: 'chart-builder', id: 'Amazing Chart' })}>
-          Click ME
-        </Section>
-
+        <h1 className='text-3xl font-semibold'>Report</h1>
         {reportData.map(r => {
           if (r.type === "TextEditor") return (<Section key={r.id}>
             <TextEditor value={r.value} onChange={v => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }])} />
           </Section>)
-          if (r.type === "Chart") return (<Section key={r.id} onClick={() => setPage({ name: 'chart-builder', id: r.id })}>
+          if (r.type === "Chart") return (<Section key={r.id} onClick={() => setPage({
+            name: 'chart-builder', id: r.id, props: { chartValues: r.value, setChartValues: (v) => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }]) }
+          })}>
             <ChartView values={r.value} />
           </Section>)
         })}
@@ -57,7 +57,7 @@ export default function ReportPage() {
 
           </div>
           <div className='relative'>
-            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "Chart", value: [] }])}
+            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "Chart", value: {value: [], userSQL: "", userSelect: structuredClone(DEFAULT_SELECT)} }])}
               className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
               Chart
             </div>

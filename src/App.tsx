@@ -8,7 +8,7 @@ function View() {
   const { page } = usePage();
 
   if (page.name === "report") return <ReportPage />;
-  if (page.name === "chart-builder") return <ChartBuilderPage pageId="32d413ba-b0bd-475e-bdf7-b9f263f87afd" />;
+  if (page.name === "chart-builder") return <ChartBuilderPage />;
 
   return null;
 }

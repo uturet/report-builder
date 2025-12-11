@@ -399,7 +399,7 @@ export function openIndexedDB(): Promise<IDBDatabase> {
   });
 }
 
-export async function savePageState(pageId: string, db: SqlJsDatabase, tables: string[], tableTypes: TablesTypes, userSQL: string, userSelect: Select) {
+export async function savePageState(pageId: string, db: SqlJsDatabase, tables: string[], tableTypes: TablesTypes) {
   try {
     const idb = await openIndexedDB();
     const tx = idb.transaction(IDB_STORE, "readwrite");
@@ -417,8 +417,6 @@ export async function savePageState(pageId: string, db: SqlJsDatabase, tables: s
       dbBytes: exported,
       tables,
       tableTypes,
-      userSQL,
-      userSelect,
       savedAt: Date.now(),
     };
 
