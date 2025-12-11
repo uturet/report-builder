@@ -21,3 +21,7 @@
 .scroll-hidden::-webkit-scrollbar {
   display: none;
 }
+
+.ql-toolbar.ql-snow, .ql-container.ql-snow {
+  border: none !important;
+}
