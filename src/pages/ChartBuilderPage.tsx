@@ -9,7 +9,7 @@ import SidebarSection from '../components/SidebarSection'
 import SQLBuilder from '../components/SQLBuilder'
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type QueryExecResult } from "sql.js";
 import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
-import ChartView from '../components/ChartView'
+import ChartView, { type ScatterValue } from '../components/ChartView'
 import TableView from '../components/TableView'
 import ChartOptions from '../components/ChartOptions'
 
@@ -25,7 +25,10 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
   const [userSQL, setUserSQL] = useState<string>("")
   const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
   const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
+  const [chartValues, setChartValues] = useState<ScatterValue[]>([])
   const [errMessage, setErrMessage] = useState("")
+  const [label, setLabel] = useState<string>("") // SELECT DISTINCT column_name
+  const [data, setData] = useState<string>("")
 
   const handleClick = () => {
     inputRef.current?.click();
@@ -116,6 +119,25 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
     }
   }, [userSQL])
 
+  useEffect(() => {
+    try {
+      if (label && data && SQLResult) {
+        const xI = SQLResult!.columns.indexOf(label)
+        const yI = SQLResult!.columns.indexOf(data)
+        if (xI < 0 || yI < 0) {
+          setChartValues([])
+        } else {
+          setChartValues(SQLResult!.values.map(row => ({
+            x: Number(row[xI]),
+            y: Number(row[yI])
+          })))
+        }
+      } else {
+        setChartValues([])
+      }
+    } catch (error) { }
+  }, [label, data, SQLResult])
+
   return (
     <div className='bg-stone-100 flex h-dvh w-dvw text-black'>
       <Sidebar>
@@ -158,11 +180,16 @@ export default function ChartBuilderPage({ pageId }: { pageId: string }) {
         </Section>
 
         <Section>
-          <ChartOptions columns={SQLResult ? SQLResult.columns : []} />
+          <ChartOptions
+            columns={SQLResult ? SQLResult.columns : []}
+            label={label}
+            setLabel={setLabel}
+            data={data}
+            setData={setData} />
         </Section>
 
         <Section>
-          <ChartView />
+          <ChartView values={chartValues} />
         </Section>
 
         <Section>

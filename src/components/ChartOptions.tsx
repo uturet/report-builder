@@ -1,33 +1,23 @@
 import { NavArrowDown } from 'iconoir-react'
 import React, { useState } from 'react'
+import { type Database } from "sql.js";
 
-export default function ChartOptions({ columns }: { columns: string[] }) {
-  const [open, setOpen] = useState<'label'|'data'|null>(null)
-  const [label, setLabel] = useState<string>()
-  const [data, setData] = useState<string>()
 
-  const tmp = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Sales',
-        data: [10, 20, 15, 40, 30, 50],
-        borderWidth: 2,
-        borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(250, 250, 250, 0.3)',
-        tension: 0.3
-      },
-      {
-        label: 'Sales2',
-        data: [20, 15, 40, 30, 50, 40],
-        borderWidth: 2,
-        borderColor: 'rgb(224, 211, 156)',
-        backgroundColor: 'rgba(189, 171, 122, 0.3)',
-        tension: 0.3
-      }
-    ]
-  }
-
+type ChartOptionsProps = {
+  columns: string[], 
+  label: string,
+  setLabel: React.Dispatch<React.SetStateAction<string>>,
+  data: string,
+  setData: React.Dispatch<React.SetStateAction<string>>,
+}
+export default function ChartOptions({ 
+  columns, 
+  label,
+  setLabel,
+  data,
+  setData 
+}: ChartOptionsProps) {
+  const [open, setOpen] = useState<'label' | 'data' | null>(null)
 
   return (
     <div className='flex flex-row gap-2'>
@@ -36,7 +26,7 @@ export default function ChartOptions({ columns }: { columns: string[] }) {
           Label
         </div>
 
-        <div onClick={() => setOpen(prev => prev === 'label' ? null : 'label')} 
+        <div onClick={() => setOpen(prev => prev === 'label' ? null : 'label')}
           className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
           {label ? label : "data"} <NavArrowDown className='inline' />
         </div>
