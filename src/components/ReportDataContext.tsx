@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, type ReactNode } from 'reac
 import type { ChartValuesType } from './PageContext';
 
 type ReportItem = {
+  i: number,
   id: string,
   type: "TextEditor" | "Chart",
   value: string | ChartValuesType

@@ -33,7 +33,7 @@ export default function ReportPage() {
       </Sidebar>
       <Main>
         <h1 className='text-3xl font-semibold'>Report {page.id}</h1>
-        {reportData.map(r => {
+        {reportData.sort((rc, rn) => rc.i - rn.i).map(r => {
           if (r.type === "TextEditor") return (<Section key={r.id}>
             <TextEditor value={r.value as string} onChange={v => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }])} />
           </Section>)
@@ -48,14 +48,14 @@ export default function ReportPage() {
 
         <div className='flex flex-row gap-2 justify-center'>
           <div className='relative'>
-            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "TextEditor", value: "" }])}
+            <div onClick={() => setReportData(prev => [...prev, { i: prev.length, id: uuid4(), type: "TextEditor", value: "" }])}
               className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
               TextEditor
             </div>
 
           </div>
           <div className='relative'>
-            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "Chart", value: { chartValues: [], userSQL: "", userSelect: structuredClone(DEFAULT_SELECT), label: "", data: "" } }])}
+            <div onClick={() => setReportData(prev => [...prev, {i: prev.length, id: uuid4(), type: "Chart", value: { chartValues: [], userSQL: "", userSelect: structuredClone(DEFAULT_SELECT), label: "", data: "" } }])}
               className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
               Chart
             </div>
