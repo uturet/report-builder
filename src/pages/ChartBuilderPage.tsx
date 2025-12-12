@@ -22,13 +22,13 @@ export default function ChartBuilderPage() {
   const dbRef = useRef<SqlJsDatabase | null>(null);
   const SQLRef = useRef<SqlJsStatic | null>(null);
   const [tableTypes, setTableTypes] = useState<TablesTypes>({})
-  const [userSQL, setUserSQL] = useState<string>("")
-  const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
+  const [userSQL, setUserSQL] = useState<string>(page.props!.chartValues.userSQL)
+  const [userSelect, setUserSelect] = useState<Select>(page.props!.chartValues.userSelect)
   const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
-  const [chartValues, setChartValues] = useState<ScatterValue[]>([])
+  const [chartValues, setChartValues] = useState<ScatterValue[]>(page.props!.chartValues.chartValues)
   const [errMessage, setErrMessage] = useState("")
-  const [label, setLabel] = useState<string>("") // SELECT DISTINCT column_name
-  const [data, setData] = useState<string>("")
+  const [label, setLabel] = useState<string>(page.props!.chartValues.label) // SELECT DISTINCT column_name
+  const [data, setData] = useState<string>(page.props!.chartValues.data)
 
   const handleClick = () => {
     inputRef.current?.click();
@@ -44,6 +44,23 @@ export default function ChartBuilderPage() {
     }
   }
 
+  const loadResults = () => {
+    if (userSQL && dbRef.current) {
+      try {
+        const result: QueryExecResult[] = dbRef.current.exec(userSQL)
+        setSQLREsult(result[0])
+      } catch (error) {
+        if (error instanceof Error) {
+          setErrMessage(error.message)
+        } else {
+          setErrMessage(`Error: ${error}`)
+        }
+      }
+    } else {
+      setSQLREsult(null)
+    }
+  }
+
   async function loadPageState() {
     await ensureSqlJs();
 
@@ -51,7 +68,7 @@ export default function ChartBuilderPage() {
       const idb = await openIndexedDB();
       const tx = idb.transaction(IDB_STORE, "readonly");
       const store = tx.objectStore(IDB_STORE);
-      const getReq = store.get(page.id);
+      const getReq = store.get(page.props!.reportId);
 
       return new Promise<void>((resolve, reject) => {
         getReq.onsuccess = async () => {
@@ -69,6 +86,7 @@ export default function ChartBuilderPage() {
           if (value.dbBytes) {
             try {
               dbRef.current = new (SQLRef.current as SqlJsStatic).Database(value.dbBytes);
+              loadResults()
             } catch (err) {
               console.error("Failed to restore DB from IndexedDB:", err);
             }
@@ -88,11 +106,6 @@ export default function ChartBuilderPage() {
 
   useEffect(() => {
     loadPageState()
-    setUserSQL(page.props!.chartValues.userSQL);
-    setUserSelect(page.props!.chartValues.userSelect);
-    setChartValues(page.props!.chartValues.chartValues)
-    setLabel(page.props!.chartValues.label)
-    setData(page.props!.chartValues.data)
   }, [])
 
   useEffect(() => {
@@ -106,24 +119,11 @@ export default function ChartBuilderPage() {
   }, [isReady, dbRef.current, tables, tableTypes])
 
   useEffect(() => {
-    if (!userSQL || !dbRef.current) {
-      setSQLREsult(null)
-      return
-    }
-    try {
-      const result: QueryExecResult[] = dbRef.current.exec(userSQL)
-      setSQLREsult(result[0])
-    } catch (error) {
-      if (error instanceof Error) {
-        setErrMessage(error.message)
-      } else {
-        setErrMessage(`Error: ${error}`)
-      }
-    }
+    loadResults()
   }, [userSQL])
 
   useEffect(() => {
-    page.props!.setChartValues({userSQL, userSelect, chartValues: page.props!.chartValues.chartValues, label, data})
+    page.props!.setChartValues({ ...page.props!.chartValues, userSQL, userSelect })
   }, [userSQL, userSelect])
 
   useEffect(() => {
@@ -132,19 +132,18 @@ export default function ChartBuilderPage() {
         const xI = SQLResult!.columns.indexOf(label)
         const yI = SQLResult!.columns.indexOf(data)
         if (xI < 0 || yI < 0) {
-          page.props!.setChartValues({userSQL, userSelect, chartValues: [], label, data})
+          page.props!.setChartValues({ userSQL, userSelect, chartValues: [], label, data })
           setChartValues([])
         } else {
           const tmp = SQLResult!.values.map(row => ({
             x: Number(row[xI]),
             y: Number(row[yI])
           }))
-          page.props!.setChartValues({userSQL, userSelect, chartValues: tmp, label, data})
+          page.props!.setChartValues({ userSQL, userSelect, chartValues: tmp, label, data })
           setChartValues(tmp)
-          console.log('setChartValues Updated')
         }
-      } else {
-        page.props!.setChartValues({userSQL, userSelect, chartValues: [], label, data})
+      } else if (!userSQL) {
+        page.props!.setChartValues({ userSQL, userSelect, chartValues: [], label, data })
         setChartValues([])
       }
     } catch (error) { console.error(error) }
@@ -185,7 +184,7 @@ export default function ChartBuilderPage() {
       </Sidebar>
       <Main>
         <Section>
-          <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />
+          {tables.length > 0 && <SQLBuilder select={userSelect} setSelect={setUserSelect} setSQL={setUserSQL} tables={tables} tablesTypes={tableTypes} />}
         </Section>
 
         <Section>
