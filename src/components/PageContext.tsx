@@ -3,11 +3,14 @@ import type { ScatterValue } from "./ChartView";
 import type { Select } from "../util";
 
 export type ChartValuesType = { 
-  value: ScatterValue[], 
+  chartValues: ScatterValue[], 
   userSQL: string, 
-  userSelect: Select 
+  userSelect: Select,
+  label: string,
+  data: string
 }
 export type ChartBuilderPageProps = {
+  reportId: string,
   chartValues: ChartValuesType,
   setChartValues: (cv: ChartValuesType) => void
 }

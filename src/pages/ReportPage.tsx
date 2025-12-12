@@ -1,5 +1,4 @@
-import React, { useState } from 'react'
-import { usePage } from '../components/PageContext'
+import { usePage, type ChartValuesType } from '../components/PageContext'
 import Sidebar from '../components/Sidebar'
 import Main from '../components/Main'
 import SidebarHead from '../components/SidebarHead'
@@ -9,16 +8,13 @@ import SidebarSection from '../components/SidebarSection'
 import uuid4 from 'uuid4'
 import ChartView from '../components/ChartView'
 import TextEditor from '../components/TextEditor'
-import { DEFAULT_SELECT, type Select } from '../util'
+import { DEFAULT_SELECT } from '../util'
+import { useReportData } from '../components/ReportDataContext'
 
-type ReportItem = {
-  id: string,
-  type: "TextEditor" | "Chart",
-  value: any
-}
+
 export default function ReportPage() {
   const { page, setPage } = usePage()
-  const [reportData, setReportData] = useState<ReportItem[]>([])
+  const { reportData, setReportData } = useReportData()
 
   return (
     <div className='bg-stone-100 flex h-dvh w-dvw text-black'>
@@ -36,17 +32,19 @@ export default function ReportPage() {
         />
       </Sidebar>
       <Main>
-        <h1 className='text-3xl font-semibold'>Report</h1>
+        <h1 className='text-3xl font-semibold'>Report {page.id}</h1>
         {reportData.map(r => {
           if (r.type === "TextEditor") return (<Section key={r.id}>
-            <TextEditor value={r.value} onChange={v => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }])} />
+            <TextEditor value={r.value as string} onChange={v => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }])} />
           </Section>)
-          if (r.type === "Chart") return (<Section key={r.id} onClick={() => setPage({
-            name: 'chart-builder', id: r.id, props: { chartValues: r.value, setChartValues: (v) => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }]) }
+          if (r.type === "Chart") {
+            const v = r.value as ChartValuesType;
+            return (<Section key={r.id} onClick={() => setPage({
+            name: 'chart-builder', id: r.id, props: { chartValues: v, reportId: page.id, setChartValues: (v) => setReportData(prev => [...prev.filter(s => s.id !== r.id), { ...prev.filter(s => s.id === r.id)[0], value: v }]) }
           })}>
-            <ChartView values={r.value} />
+            <ChartView values={v.chartValues} />
           </Section>)
-        })}
+        }})}
 
         <div className='flex flex-row gap-2 justify-center'>
           <div className='relative'>
@@ -57,7 +55,7 @@ export default function ReportPage() {
 
           </div>
           <div className='relative'>
-            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "Chart", value: {value: [], userSQL: "", userSelect: structuredClone(DEFAULT_SELECT)} }])}
+            <div onClick={() => setReportData(prev => [...prev, { id: uuid4(), type: "Chart", value: { chartValues: [], userSQL: "", userSelect: structuredClone(DEFAULT_SELECT), label: "", data: "" } }])}
               className='py-2 px-3 text-nowrap w-[fit-content] border-1 border-gray-200 rounded-md cursor-pointer bg-white hover:bg-stone-100 active:bg-stone-200 transition-all duration-200'>
               Chart
             </div>

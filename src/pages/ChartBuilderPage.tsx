@@ -25,6 +25,7 @@ export default function ChartBuilderPage() {
   const [userSQL, setUserSQL] = useState<string>("")
   const [userSelect, setUserSelect] = useState<Select>(structuredClone(DEFAULT_SELECT))
   const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
+  const [chartValues, setChartValues] = useState<ScatterValue[]>([])
   const [errMessage, setErrMessage] = useState("")
   const [label, setLabel] = useState<string>("") // SELECT DISTINCT column_name
   const [data, setData] = useState<string>("")
@@ -89,12 +90,15 @@ export default function ChartBuilderPage() {
     loadPageState()
     setUserSQL(page.props!.chartValues.userSQL);
     setUserSelect(page.props!.chartValues.userSelect);
+    setChartValues(page.props!.chartValues.chartValues)
+    setLabel(page.props!.chartValues.label)
+    setData(page.props!.chartValues.data)
   }, [])
 
   useEffect(() => {
     if (dbRef.current) {
       if (isReady) {
-        savePageState(page.id, dbRef.current, tables, tableTypes)
+        savePageState(page.props!.reportId, dbRef.current, tables, tableTypes)
       } else {
         setIsReady(true)
       }
@@ -119,7 +123,7 @@ export default function ChartBuilderPage() {
   }, [userSQL])
 
   useEffect(() => {
-    page.props!.setChartValues({userSQL, userSelect, value: page.props!.chartValues.value})
+    page.props!.setChartValues({userSQL, userSelect, chartValues: page.props!.chartValues.chartValues, label, data})
   }, [userSQL, userSelect])
 
   useEffect(() => {
@@ -128,17 +132,22 @@ export default function ChartBuilderPage() {
         const xI = SQLResult!.columns.indexOf(label)
         const yI = SQLResult!.columns.indexOf(data)
         if (xI < 0 || yI < 0) {
-          page.props!.setChartValues({userSQL, userSelect, value: []})
+          page.props!.setChartValues({userSQL, userSelect, chartValues: [], label, data})
+          setChartValues([])
         } else {
-          page.props!.setChartValues({userSQL, userSelect, value: SQLResult!.values.map(row => ({
+          const tmp = SQLResult!.values.map(row => ({
             x: Number(row[xI]),
             y: Number(row[yI])
-          }))})
+          }))
+          page.props!.setChartValues({userSQL, userSelect, chartValues: tmp, label, data})
+          setChartValues(tmp)
+          console.log('setChartValues Updated')
         }
       } else {
-        page.props!.setChartValues({userSQL, userSelect, value: []})
+        page.props!.setChartValues({userSQL, userSelect, chartValues: [], label, data})
+        setChartValues([])
       }
-    } catch (error) { }
+    } catch (error) { console.error(error) }
   }, [label, data, SQLResult])
 
   return (
@@ -148,7 +157,7 @@ export default function ChartBuilderPage() {
           <a
             onClick={(event) => {
               event.preventDefault()
-              setPage({ name: "report", id: "default" })
+              setPage({ name: "report", id: page.props!.reportId })
             }}
             href=""
             className='block group cursor-pointer visited:text-black text-black hover:text-gray-700 no-underline hover:underline transition-all duration-200'>
@@ -189,7 +198,7 @@ export default function ChartBuilderPage() {
         </Section>
 
         <Section>
-          <ChartView values={page.props!.chartValues.value} />
+          <ChartView values={chartValues} />
         </Section>
 
         <Section>

@@ -1,7 +1,7 @@
 import { PageProvider, usePage } from "./components/PageContext";
 import ReportPage from "./pages/ReportPage";
 import ChartBuilderPage from "./pages/ChartBuilderPage";
-
+import { ReportDataProvider } from "./components/ReportDataContext";
 
 
 function View() {
@@ -16,7 +16,9 @@ function View() {
 export default function App() {
   return (
     <PageProvider>
-      <View />
+      <ReportDataProvider>
+        <View />
+      </ReportDataProvider>
     </PageProvider>
   );
 }
