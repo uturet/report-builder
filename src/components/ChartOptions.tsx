@@ -1,6 +1,5 @@
 import { NavArrowDown } from 'iconoir-react'
 import React, { useState } from 'react'
-import { type Database } from "sql.js";
 
 
 type ChartOptionsProps = {

@@ -1,8 +1,9 @@
-import React, {type ReactNode} from 'react'
+import {type ReactNode} from 'react'
 import { usePage } from './PageContext'
 
 
 export default function Sidebar({children}: {children: ReactNode}) {
+    // @ts-ignore
     const { setPage } = usePage();
 
     return (

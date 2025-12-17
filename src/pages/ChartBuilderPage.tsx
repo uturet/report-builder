@@ -8,7 +8,7 @@ import { MapsArrow, Plus } from 'iconoir-react'
 import SidebarSection from '../components/SidebarSection'
 import SQLBuilder from '../components/SQLBuilder'
 import initSqlJs, { type Database as SqlJsDatabase, type SqlJsStatic, type QueryExecResult } from "sql.js";
-import { DEFAULT_SELECT, handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
+import { handleFiles, IDB_STORE, openIndexedDB, savePageState, WASM_PATH, type Select, type TablesTypes } from "../util"
 import ChartView, { type ScatterValue } from '../components/ChartView'
 import TableView from '../components/TableView'
 import ChartOptions from '../components/ChartOptions'
@@ -26,6 +26,7 @@ export default function ChartBuilderPage() {
   const [userSelect, setUserSelect] = useState<Select>(page.props!.chartValues.userSelect)
   const [SQLResult, setSQLREsult] = useState<QueryExecResult | null>(null)
   const [chartValues, setChartValues] = useState<ScatterValue[]>(page.props!.chartValues.chartValues)
+  // @ts-ignore
   const [errMessage, setErrMessage] = useState("")
   const [label, setLabel] = useState<string>(page.props!.chartValues.label) // SELECT DISTINCT column_name
   const [data, setData] = useState<string>(page.props!.chartValues.data)

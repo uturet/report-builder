@@ -33,7 +33,6 @@ export default function ReportPage() {
     const pdf = new jsPDF("p", "mm", "a4");
 
     const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
 
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * pageWidth) / canvas.width;

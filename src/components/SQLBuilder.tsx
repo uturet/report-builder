@@ -257,7 +257,7 @@ type WhereOperationProps = {
     setSelectedCondition: (w: WhereCondition) => void
 }
 function WhereOperation(
-    { colType, columns, selectedCondition, setSelectedCondition }: WhereOperationProps
+    { columns, selectedCondition, setSelectedCondition }: WhereOperationProps
 ) {
     const [open, setOpen] = useState<null | "column" | "operation">()
 

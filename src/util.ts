@@ -1,6 +1,5 @@
 import Papa from "papaparse";
 import type { Database as SqlJsDatabase } from "sql.js";
-import type { Select } from "./components/SQLBuilder";
 
 export type TablesTypes = {
   [key: string]: {
@@ -147,7 +146,6 @@ export async function handleFiles(
     await new Promise<void>((resolve, reject) => {
       let rowsBuffer: string[][] = [];
       let totalRows = 0;
-      let firstStep = true;
 
       Papa.parse(file, {
         header: true,
@@ -207,8 +205,6 @@ export async function handleFiles(
             }
             rowsBuffer = [];
           }
-
-          firstStep = false;
         },
         complete: function () {
           try {
@@ -283,7 +279,7 @@ export function selectToSQL(node: Select): string {
       return `WHERE ${c} BETWEEN ${lit(val)} AND ${lit((w.value2 ?? "").toString())}`;
     }
     if (op.toUpperCase() === "IN") {
-      const items = val.split(",").map(s => s.trim()).filter(Boolean).map(lit).join(", ");
+      const items = val.split(",").map((s: string) => s.trim()).filter(Boolean).map(lit).join(", ");
       return items ? `WHERE ${c} IN (${items})` : "";
     }
     if (val === "") return `WHERE ${c} ${op}`;

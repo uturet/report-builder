@@ -1,5 +1,4 @@
-import React, { type ReactNode } from 'react'
-import { NavArrowDown } from 'iconoir-react'
+import { type ReactNode } from 'react'
 
 export default function Section({children, onClick}: {children?: ReactNode, onClick?: () => void}) {
 
