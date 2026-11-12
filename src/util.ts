@@ -375,7 +375,7 @@ export const DEFAULT_SELECT: Select = {
 
 
 
-export const WASM_PATH = "/sql-wasm.wasm"
+export const WASM_PATH = `${import.meta.env.BASE_URL}sql-wasm.wasm`
 
 export const IDB_DB_NAME = "sqljs-pages";
 export const IDB_STORE = "pages";
